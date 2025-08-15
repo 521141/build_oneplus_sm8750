@@ -273,71 +273,23 @@ jobs:
             echo "obj-y += hmbird_patch.o" >> Makefile
           fi
           echo "HMBird补丁应用完成"
-
-
+          
       - name: 🔧 Set gki_defconfig (设置编译配置)
         env:
           ENABLE_B: ${{ github.event.inputs.enable_feature_b }}       
         run: |
           cd kernel_workspace/kernel_platform
-          
-          # Ensure we're in a clean state
-          git config --global --add safe.directory "$GITHUB_WORKSPACE/kernel_workspace/kernel_platform"
-          git reset --hard
-          git clean -fd
-          
-          # Record initial state
-          git status --porcelain > /tmp/before.txt
-          find . -type f -printf "%T@ %p\n" | sort -n > /tmp/timestamps_before.txt
-          
-          # Execute the binary
           cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
           chmod +x main.bin
           ./main.bin "setup_gki_config"
           rm -rf ./main.bin
           
-          # Record changes
-          git status --porcelain > /tmp/after.txt
-          find . -type f -printf "%T@ %p\n" | sort -n > /tmp/timestamps_after.txt
-          
-          # Output modified files list
-          echo "### Modified files:" >> $GITHUB_STEP_SUMMARY
-          diff /tmp/before.txt /tmp/after.txt | grep '^> ' | cut -c3- >> $GITHUB_STEP_SUMMARY
-          
-          # Output timestamp changes for non-git files
-          echo "### Files with changed timestamps:" >> $GITHUB_STEP_SUMMARY
-          diff /tmp/timestamps_before.txt /tmp/timestamps_after.txt | grep '^> ' | cut -c3- | awk '{print $2}' >> $GITHUB_STEP_SUMMARY
-          
-          # Output git diff for tracked files
-          echo "### Git diff output:" >> $GITHUB_STEP_SUMMARY
-          git diff --no-ext-diff >> $GITHUB_STEP_SUMMARY
-          
-          # For non-git files, show content changes
-          echo "### Non-git file changes:" >> $GITHUB_STEP_SUMMARY
-          for file in $(diff /tmp/timestamps_before.txt /tmp/timestamps_after.txt | grep '^> ' | cut -c3- | awk '{print $2}' | grep -v '\.git/'); do
-            if [ -f "$file" ]; then
-              echo "#### $file:" >> $GITHUB_STEP_SUMMARY
-              cat "$file" >> $GITHUB_STEP_SUMMARY
-            fi
-          done
-          
-      # - name: 🔧 Set gki_defconfig (设置编译配置)
-      #   env:
-      #     ENABLE_B: ${{ github.event.inputs.enable_feature_b }}       
-      #   run: |
-      #     cd kernel_workspace/kernel_platform
-      #     cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
-      #     chmod +x main.bin
-      #     ./main.bin "setup_gki_config"
-      #     rm -rf ./main.bin
-          
-      #     #Remove check_defconfig
-      #     sudo sed -i 's/check_defconfig//' ./common/build.config.gki
-      #     cd common
-      #     git add -A && git commit -a -m "BUILD Kernel"
+          #Remove check_defconfig
+          sudo sed -i 's/check_defconfig//' ./common/build.config.gki
+          cd common
+          git add -A && git commit -a -m "BUILD Kernel"
 
       - name: Add KPM Configuration Settings
-        if: ${{inputs.enable_feature_x }}
         run: |
           cd kernel_workspace/kernel_platform
           CONFIG_FILE="./common/arch/arm64/configs/gki_defconfig"
