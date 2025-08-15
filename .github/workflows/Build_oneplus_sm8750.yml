@@ -336,6 +336,27 @@ jobs:
       #     cd common
       #     git add -A && git commit -a -m "BUILD Kernel"
 
+      - name: Add KPM Configuration Settings
+        if: ${{inputs.enable_feature_x }}
+        run: |
+          cd kernel_workspace/kernel_platform
+          CONFIG_FILE="./common/arch/arm64/configs/gki_defconfig"
+          
+          # If CONFIG_KPM exists (in any form: =y, =m, =n, etc.), replace it with =y
+          if grep -q "CONFIG_KPM" "$CONFIG_FILE"; then
+            sed -i 's/^CONFIG_KPM=.*/CONFIG_KPM=y/' "$CONFIG_FILE"
+            echo "Updated existing CONFIG_KPM to 'y'"
+          else
+            # If it doesn't exist, append it
+            echo "CONFIG_KPM=y" >> "$CONFIG_FILE"
+            echo "Added new CONFIG_KPM=y"
+          fi
+          
+          # Remove check_defconfig
+          sudo sed -i 's/check_defconfig//' ./common/build.config.gki
+          cd common
+          git add -A && git commit -a -m "BUILD Kernel"
+
       - name: 🔧 Set Kernel name (设置内核名称)
         env:
           REPO_MANIFEST: ${{ github.event.inputs.REPO_MANIFEST }}
@@ -410,16 +431,26 @@ jobs:
           echo "只要本步骤没有意外退出就是在编译中"
           echo "请耐心等待...."
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2  Image > /dev/null 2>&1
-       
-      - name: 📦 Make AnyKernel3 (创建Anykernel3)
+
+      - name: Apply Linux Patch
+
         run: |
-          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
-          chmod +x main.bin
-          ./main.bin "make_anykernel3"
-          rm -rf ./main.bin
-          
-      - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
+         cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
+         curl -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux
+         chmod +x patch_linux
+         ./patch_linux
+         rm -f Image
+         mv oImage Image
+
+      - name: Make AnyKernel3
+        run: |
+         git clone https://github.com/Kernel-SU/AnyKernel3.git --depth=1      
+         rm -rf ./AnyKernel3/.git
+         rm -rf ./AnyKernel3/push.sh
+         cp kernel_workspace/kernel_platform/common/out/arch/arm64/boot/Image ./AnyKernel3/
+
+      - name: Upload AnyKernel3
         uses: actions/upload-artifact@v4
         with:
-         name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_SuKiSU
+         name: SuKiSu_${{ env.KSUVER }}_oneplus_13
          path: ./AnyKernel3/*
