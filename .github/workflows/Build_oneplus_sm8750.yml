@@ -281,22 +281,45 @@ jobs:
         run: |
           cd kernel_workspace/kernel_platform
           
-          # 记录初始状态
-          git status --porcelain > /tmp/before.txt
+          # Ensure we're in a clean state
+          git config --global --add safe.directory "$GITHUB_WORKSPACE/kernel_workspace/kernel_platform"
+          git reset --hard
+          git clean -fd
           
+          # Record initial state
+          git status --porcelain > /tmp/before.txt
+          find . -type f -printf "%T@ %p\n" | sort -n > /tmp/timestamps_before.txt
+          
+          # Execute the binary
           cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
           chmod +x main.bin
           ./main.bin "setup_gki_config"
           rm -rf ./main.bin
           
-          # 记录变化
+          # Record changes
           git status --porcelain > /tmp/after.txt
+          find . -type f -printf "%T@ %p\n" | sort -n > /tmp/timestamps_after.txt
+          
+          # Output modified files list
           echo "### Modified files:" >> $GITHUB_STEP_SUMMARY
           diff /tmp/before.txt /tmp/after.txt | grep '^> ' | cut -c3- >> $GITHUB_STEP_SUMMARY
           
-          # 显示每个修改文件的内容差异
-          echo "### File changes:" >> $GITHUB_STEP_SUMMARY
+          # Output timestamp changes for non-git files
+          echo "### Files with changed timestamps:" >> $GITHUB_STEP_SUMMARY
+          diff /tmp/timestamps_before.txt /tmp/timestamps_after.txt | grep '^> ' | cut -c3- | awk '{print $2}' >> $GITHUB_STEP_SUMMARY
+          
+          # Output git diff for tracked files
+          echo "### Git diff output:" >> $GITHUB_STEP_SUMMARY
           git diff --no-ext-diff >> $GITHUB_STEP_SUMMARY
+          
+          # For non-git files, show content changes
+          echo "### Non-git file changes:" >> $GITHUB_STEP_SUMMARY
+          for file in $(diff /tmp/timestamps_before.txt /tmp/timestamps_after.txt | grep '^> ' | cut -c3- | awk '{print $2}' | grep -v '\.git/'); do
+            if [ -f "$file" ]; then
+              echo "#### $file:" >> $GITHUB_STEP_SUMMARY
+              cat "$file" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
           
       # - name: 🔧 Set gki_defconfig (设置编译配置)
       #   env:
