@@ -71,10 +71,10 @@ jobs:
       - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
         id: set_manifest
         run: |
-          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
-          chmod +x main.bin
-          ./main.bin "setup_device_info" "${{ github.event.inputs.REPO_MANIFEST }}"
-          rm -rf ./main.bin
+          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.sh" ./
+          chmod +x main.sh
+          ./main.sh "setup_device_info" "${{ github.event.inputs.REPO_MANIFEST }}"
+          rm -rf ./main.sh
 
       # 设置内核构建时间
       - name: ⚙️ Set KERNEL_TIME (设置构建时间)
@@ -206,14 +206,14 @@ jobs:
           cd ./KernelSU
           KSU_VERSION=$(expr $(git rev-list --count main 2>/dev/null || echo 13000) + 10700)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-            cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/setup.bin" ./
-          chmod +x setup.bin
+            cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/setup.sh" ./
+          chmod +x setup.sh
           if [ ! -f "kernel/Makefile" ]; then
             echo "::error ::kernel/Makefile"
             ls -la
             exit 1
           fi
-          ./setup.bin
+          ./setup.sh
 
       # 配置SUSFS文件系统增强功能
       - name: 🔧 Set up SUSFS (配置 SUSFS)
@@ -247,10 +247,10 @@ jobs:
                   fi
               done
 
-              cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
-              chmod +x main.bin
-              ./main.bin "setup_lz4"
-              rm -rf ./main.bin
+              cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.sh" ./
+              chmod +x main.sh
+              ./main.sh "setup_lz4"
+              rm -rf ./main.sh
           fi
 
           if [ "${REPO_MANIFEST}" != "oneplus_13t" ] && [ "${REPO_MANIFEST}" != "oneplus_ace5_ultra" ] && [ "${REPO_MANIFEST}" != "oneplus_pad_2_pro" ]; then
@@ -293,10 +293,10 @@ jobs:
       - name: 🔧 Set gki_defconfig (设置编译配置)
         run: |
           cd kernel_workspace/kernel_platform
-          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
-          chmod +x main.bin
-          ./main.bin "setup_gki_config"
-          rm -rf ./main.bin
+          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.sh" ./
+          chmod +x main.sh
+          ./main.sh "setup_gki_config"
+          rm -rf ./main.sh
           #Remove check_defconfig
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
           cd common
@@ -382,10 +382,10 @@ jobs:
       # 创建AnyKernel3刷机包
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
-          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
-          chmod +x main.bin
-          ./main.bin "make_anykernel3"
-          rm -rf ./main.bin
+          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.sh" ./
+          chmod +x main.sh
+          ./main.sh "make_anykernel3"
+          rm -rf ./main.sh
 
       # 上传AnyKernel3刷机包作为构建产物
       - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
