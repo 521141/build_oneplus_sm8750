@@ -211,27 +211,27 @@ jobs:
                       rm "$file"
                   fi
               done
-
-          # setup_lz4
-          git clone https://github.com/521141/Demo_kernel.git --depth=1 &>/dev/null
-          rm -rf Demo_kernel/.git
-          cp -r ./Demo_kernel/zram/lz4/* ./lib/lz4/
-          cp -r ./Demo_kernel/zram/include/linux/* ./include/linux/
-          cp ./Demo_kernel/zram/6.6/lz4_1.10.0.patch ./
-          patch -p1 -F 3 --fuzz=5 < lz4_1.10.0.patch || true
-
-          # 检查文件是否存在
-          if [ -f "fs/f2fs/Makefile" ]; then
-              # 检查是否包含指定行
-              if ! grep -qF "f2fs-\$(CONFIG_F2FS_IOSTAT) += iostat.o" "fs/f2fs/Makefile"; then
-                  echo "f2fs-\$(CONFIG_F2FS_IOSTAT) += iostat.o" >> "fs/f2fs/Makefile"
-                  echo "已添加: f2fs-\$(CONFIG_F2FS_IOSTAT) += iostat.o"
+              # setup_lz4
+              git clone https://github.com/521141/Demo_kernel.git --depth=1 &>/dev/null
+              rm -rf Demo_kernel/.git
+              cp -r ./Demo_kernel/zram/lz4/* ./lib/lz4/
+              cp -r ./Demo_kernel/zram/include/linux/* ./include/linux/
+              cp ./Demo_kernel/zram/6.6/lz4_1.10.0.patch ./
+              patch -p1 -F 3 --fuzz=5 < lz4_1.10.0.patch || true
+              # 检查文件是否存在
+              if [ -f "fs/f2fs/Makefile" ]; then
+                  # 检查是否包含指定行
+                  if ! grep -qF "f2fs-\$(CONFIG_F2FS_IOSTAT) += iostat.o" "fs/f2fs/Makefile"; then
+                      echo "f2fs-\$(CONFIG_F2FS_IOSTAT) += iostat.o" >> "fs/f2fs/Makefile"
+                      echo "已添加: f2fs-\$(CONFIG_F2FS_IOSTAT) += iostat.o"
+                  else
+                      echo "文件已经包含: f2fs-\$(CONFIG_F2FS_IOSTAT) += iostat.o"
+                  fi
               else
-                  echo "文件已经包含: f2fs-\$(CONFIG_F2FS_IOSTAT) += iostat.o"
+                  echo "文件不存在: fs/f2fs/Makefile"
               fi
-          else
-              echo "文件不存在: fs/f2fs/Makefile"
           fi
+
           if [ "${REPO_MANIFEST}" != "oneplus_13t" ] && [ "${REPO_MANIFEST}" != "oneplus_ace5_ultra" ] && [ "${REPO_MANIFEST}" != "oneplus_pad_2_pro" ]; then
               sed -i 's/-32,12 +32,38/-32,11 +32,37/g' 50_add_susfs_in_gki-android15-6.6.patch
               sed -i '/#include <trace\/hooks\/fs.h>/d' 50_add_susfs_in_gki-android15-6.6.patch
