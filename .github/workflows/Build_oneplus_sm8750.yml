@@ -1,7 +1,14 @@
+# 工作流名称: Build_oneplus_sm8750
+# 该工作流用于编译OnePlus SM8750系列设备的内核
 name: Build_oneplus_sm8750
+
+# 触发条件定义
 on:
+  # 手动触发工作流
   workflow_dispatch:
+    # 用户输入参数定义
     inputs:
+      # 选择要编译的设备型号
       REPO_MANIFEST:
         description: "📝请选择要编译的机型："
         required: true
@@ -16,41 +23,54 @@ on:
           - "realme_GT7pro_Speed"
         default: "oneplus_13"
 
+      # 是否保持原始内核设置选项
       keep_original_settings:
         description: "📝保持原内核名称及构建时间(不懂请保持默认)"
         required: false
         default: true
         type: boolean
 
+      # 自定义内核后缀名
       custom_kernel_suffix:
         description: "✏️ 自定义内核名称- 仅在取消勾选'保持原设置'时有效(不懂请保持默认)"
         required: false
         default: ""
 
+      # 自定义构建时间
       custom_kernel_time:
         description: "⏰ 自定义构建时间- 仅在取消勾选'保持原设置'时有效(不懂请保持默认)"
         required: false
         default: ""
 
+      # 是否启用风驰驱动功能
       enable_feature_z:
         description: "添加风驰驱动"
         required: false
         default: true
         type: boolean
 
+# 工作流任务定义
 jobs:
+  # 编译任务
   build:
+    # 动态设置任务名称
     name: Build_${{ github.event.inputs.REPO_MANIFEST }}
+    # 运行环境
     runs-on: ubuntu-latest
+    # 执行步骤
     steps:
+      # 检出代码
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      
+      # 检查磁盘空间
       - name: 📊 Check disk space (检查磁盘空间)
         run: |
           echo "构建前磁盘空间："
           df -h
 
+      # 设置设备相关信息
       - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
         id: set_manifest
         run: |
@@ -59,6 +79,7 @@ jobs:
           ./main.bin "setup_device_info" "${{ github.event.inputs.REPO_MANIFEST }}"
           rm -rf ./main.bin
 
+      # 设置内核构建时间
       - name: ⚙️ Set KERNEL_TIME (设置构建时间)
         id: set_kernel_time
         run: |
@@ -82,15 +103,18 @@ jobs:
             esac
           fi
 
+      # 设置设备特定的CCACHE目录
       - name: ⚙️ Set device-specific CCACHE_DIR (设置对应机型Cceche路径)
         run: |
           echo "CCACHE_DIR=$HOME/.ccache_${REPO_MANIFEST}" >> $GITHUB_ENV
 
+      # 配置Git用户信息
       - name: 📦 Configure Git (设置下载账户)
         run: |
           git config --global user.name "Q1udaoyu"
           git config --global user.email "sucisama2888@gmail.com"
 
+      # 配置APT缓存以提高后续构建速度
       - name: 🛠 Configure APT caching (配置APT缓存)
         run: |
           APT_CACHE_DIR="$HOME/apt-cache"
@@ -102,6 +126,7 @@ jobs:
           echo "Acquire::Languages \"none\";" | sudo tee -a /etc/apt/apt.conf.d/90user-cache
           sudo chown -R $USER:$USER "$APT_CACHE_DIR"
 
+      # 缓存APT包以提高构建效率
       - name: 🛠 Cache APT packages (缓存APT包)
         uses: actions/cache@v3
         with:
@@ -110,6 +135,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-apt-
 
+      # 安装编译所需的依赖包
       - name: 📦 Install dependencies (安装依赖)
         run: |
           sudo rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock
@@ -124,6 +150,7 @@ jobs:
 
           echo "✅ 依赖安装完成"
 
+      # 恢复ccache缓存以加快编译速度
       - name: 📥 Restore ccache (载入 机型：${{ env.DEVICES_NAME }}的 ccache 缓存)
         uses: actions/cache@v3
         with:
@@ -133,6 +160,7 @@ jobs:
             ccache-${{ runner.os }}-${{ env.REPO_MANIFEST }}-
             ccache-${{ runner.os }}-
 
+      # 初始化ccache
       - name: 📥 Init ccache (如果是第一次运行则初始化Cceche)
         run: |
           export CCACHE_COMPILERCHECK="%compiler% -dumpmachine; %compiler% -dumpversion"
@@ -155,12 +183,14 @@ jobs:
             echo "未安装 ccache，跳过"
           fi
 
+      # 安装repo工具用于同步代码
       - name: 📥 Install repo tool (下载repo工具)
         run: |
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
           chmod a+x ~/repo
           sudo mv ~/repo /usr/local/bin/repo
 
+      # 初始化repo并同步内核源码
       - name: 📥 Initialize repo and sync (初始化repo并同步内核源码)
         run: |
           mkdir kernel_workspace && cd kernel_workspace
@@ -169,6 +199,7 @@ jobs:
           rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
 
+      # 设置SuKiSU Ultra内核增强功能
       - name: ⚙️ Set SuKiSU Ultra (设置SuKiSU Ultra)
         run: |
           mkdir -p kernel_workspace/kernel_platform
@@ -181,6 +212,7 @@ jobs:
           export KSU_VERSION=$KSU_VERSION
           sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
 
+      # 配置SUSFS文件系统增强功能
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         run: |
           cd kernel_workspace
@@ -242,6 +274,7 @@ jobs:
 
           echo "完成"
 
+      # 缓存HMBird补丁文件
       - name: 🔧 Cache HMBird patch (缓存HMBird补丁)
         uses: actions/cache@v3
         with:
@@ -250,6 +283,7 @@ jobs:
           restore-keys: |
             hmbird-patch-v1
 
+      # 应用HMBird GKI补丁以支持单Boot启动
       - name: 🔧 Apply HMBird GKI patch (写入单Boot开机补丁)
         run: |
           PATCH_FILE="${{ runner.temp }}/hmbird_patch.c"
@@ -266,6 +300,7 @@ jobs:
           fi
           echo "HMBird补丁应用完成"
 
+      # 配置内核编译选项
       - name: 🔧 Set gki_defconfig (设置编译配置)
         run: |
           cd kernel_workspace/kernel_platform
@@ -305,6 +340,7 @@ jobs:
           cd common
           git add -A && git commit -a -m "BUILD Kernel"
 
+      # 设置内核名称后缀
       - name: 🔧 Set Kernel name (设置内核名称)
         env:
           REPO_MANIFEST: ${{ github.event.inputs.REPO_MANIFEST }}
@@ -347,6 +383,7 @@ jobs:
           sudo sed -i "s/-4k/$ESCAPED_SUFFIX/g" ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/${scm_version}//' ./common/scripts/setlocalversion
 
+      # 添加风驰调度器补丁（如果启用）
       - name: 🔧 Add sched_ext (写入风驰补丁)
         if: ${{inputs.enable_feature_z }}
         run: |
@@ -356,6 +393,7 @@ jobs:
           rm -rf ./sched_ext/.git
           cd common/kernel/sched
 
+      # 编译内核
       - name: 🔨 Build Kernel (构建内核)
         run: |
           export PATH="/usr/lib/ccache:$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/clang-r510928/bin:$PATH"
@@ -369,6 +407,7 @@ jobs:
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2  gki_defconfig
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2  Image
 
+      # 应用Linux补丁
       - name: Apply Linux Patch
         run: |
           cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
@@ -378,6 +417,7 @@ jobs:
           rm -f Image
           mv oImage Image
 
+      # 创建AnyKernel3刷机包
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
           git clone https://github.com/Kernel-SU/AnyKernel3.git --depth=1
@@ -385,6 +425,7 @@ jobs:
           rm -rf ./AnyKernel3/push.sh
           cp kernel_workspace/kernel_platform/common/out/arch/arm64/boot/Image ./AnyKernel3/
 
+      # 上传AnyKernel3刷机包作为构建产物
       - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
         uses: actions/upload-artifact@v4
         with:
