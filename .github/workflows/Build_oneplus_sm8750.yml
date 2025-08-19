@@ -71,13 +71,13 @@ jobs:
           df -h
 
       # 设置设备相关信息
-      - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
-        id: set_manifest
-        run: |
-          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
-          chmod +x main.bin
-          ./main.bin "setup_device_info" "${{ github.event.inputs.REPO_MANIFEST }}"
-          rm -rf ./main.bin
+      # - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
+      #   id: set_manifest
+      #   run: |
+      #     cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
+      #     chmod +x main.bin
+      #     ./main.bin "setup_device_info" "${{ github.event.inputs.REPO_MANIFEST }}"
+      #     rm -rf ./main.bin
 
       # 设置内核构建时间
       - name: ⚙️ Set KERNEL_TIME (设置构建时间)
