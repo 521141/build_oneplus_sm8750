@@ -4,7 +4,7 @@ if [ "$GITHUB_ACTIONS" != "true" ]; then
     exit 1
 fi
 setup_lz4(){
-        git clone https://github.com/Hivensafe/Demo_kernel.git --depth=1 &>/dev/null
+        git clone https://github.com/521141/Demo_kernel.git --depth=1 &>/dev/null
         rm -rf Demo_kernel/.git
         cp -r ./Demo_kernel/zram/lz4/* ./lib/lz4/
         cp -r ./Demo_kernel/zram/include/linux/* ./include/linux/
