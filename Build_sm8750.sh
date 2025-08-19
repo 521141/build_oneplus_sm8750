@@ -2,16 +2,16 @@
 
 # 颜色定义
 info() {
-  tput setaf 3  
-  echo "[INFO] $1"
-  tput sgr0
+    tput setaf 3  
+    echo "[INFO] $1"
+    tput sgr0
 }
 
 error() {
-  tput setaf 1
-  echo "[ERROR] $1"
-  tput sgr0
-  exit 1
+    tput setaf 1
+    echo "[ERROR] $1"
+    tput sgr0
+    exit 1
 }
 
 # 参数设置
@@ -22,11 +22,11 @@ ENABLE_LZ4KD=true
 info "请选择要编译的机型："
 info "1. 一加 Ace 5 Pro"
 info "2. 一加 13"
-info "3.一加 13T"
-info "4.一加 Pad 2 Pro"
-info "5.一加 Ace5 至尊版"
-info "6.真我 GT 7 Pro"
-info "7.真我 GT 7 Pro 竞速"
+info "3. 一加 13T"
+info "4. 一加 Pad 2 Pro"
+info "5. 一加 Ace5 至尊版"
+info "6. 真我 GT 7 Pro"
+info "7. 真我 GT 7 Pro 竞速"
 
 read -p "输入选择 [1-4]: " device_choice
 
@@ -94,7 +94,6 @@ prompt_boolean() {
 }
 
 # 自定义补丁设置
-
 read -p "输入内核名称修改(可改中文和emoji，回车默认): " input_suffix
 [ -n "$input_suffix" ] && KERNEL_SUFFIX="$input_suffix"
 
@@ -230,14 +229,13 @@ cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android15-6.6.patch ./common/
 cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
 cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
 
-if [ "$ENABLE_LZ4KD" = "true"]; then
-  cp ../kernel_patches/001-lz4.patch ./common/
-  cp ../kernel_patches/lz4armv8.S ./common/lib
-  cp ../kernel_patches/002-zstd.patch ./common/
+if [ "$ENABLE_LZ4KD" = "true" ]; then
+    cp ../kernel_patches/001-lz4.patch ./common/
+    cp ../kernel_patches/lz4armv8.S ./common/lib
+    cp ../kernel_patches/002-zstd.patch ./common/
 fi
 
 cd $KERNEL_WORKSPACE/kernel_platform/common || { echo "进入common目录失败"; exit 1; }
-
 
 case "$DEVICE_NAME" in
     oneplus_13t|oneplus_ace5_ultra)
@@ -254,8 +252,8 @@ patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || info "SUSFS补丁应用�
 cp "$KERNEL_WORKSPACE/SukiSU_patch/hooks/syscall_hooks.patch" ./ || error "复制syscall_hooks.patch失败"
 patch -p1 -F 3 < syscall_hooks.patch || info "syscall_hooks补丁应用可能有警告"
 if [ "$ENABLE_LZ4KD" = "true" ]; then
-  git apply -p1 < 001-lz4.patch || true
-  patch -p1 < 002-zstd.patch || true
+    git apply -p1 < 001-lz4.patch || true
+    patch -p1 < 002-zstd.patch || true
 fi
 
 # 应用HMBird GKI补丁
@@ -293,11 +291,13 @@ apply_hmbird_patch
 # 返回common目录
 cd .. || error "返回common目录失败"
 cd arch/arm64/configs || error "进入configs目录失败"
+
 # 添加SUSFS配置
 info "添加SUSFS配置..."
 echo -e "CONFIG_KSU=y
 CONFIG_KSU_SUSFS_SUS_SU=n
 CONFIG_KSU_MANUAL_HOOK=y
+CONFIG_KSU_SUSFS=y
 CONFIG_KSU_SUSFS=y
 CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y
 CONFIG_KSU_SUSFS_SUS_PATH=n
@@ -377,7 +377,6 @@ make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clan
   RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc \
   PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole \
   LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2 gki_defconfig all || error "失败"
-
 
 # 应用Linux补丁
 info "应用Linux补丁..."

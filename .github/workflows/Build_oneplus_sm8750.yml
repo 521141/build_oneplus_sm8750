@@ -231,10 +231,16 @@ jobs:
 
           curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/susfs-main/kernel/setup.sh" -o setup.sh && bash setup.sh susfs-main
           cd ./KernelSU
-          KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10700)
+          KSU_VERSION=$(expr $(git rev-list --count main 2>/dev/null || echo 13000) + 10700)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-          export KSU_VERSION=$KSU_VERSION
-          sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
+            cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/setup.bin" ./
+          chmod +x setup.bin
+          if [ ! -f "kernel/Makefile" ]; then
+            echo "::error ::kernel/Makefile"
+            ls -la
+            exit 1
+          fi
+          ./setup.bin
 
       # 配置SUSFS文件系统增强功能
       - name: 🔧 Set up SUSFS (配置 SUSFS)
