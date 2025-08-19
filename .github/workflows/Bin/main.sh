@@ -98,7 +98,6 @@ make_anykernel3(){
  rm -rf ./AnyKernel3/.git
  rm -rf ./AnyKernel3/push.sh
  cp kernel_workspace/kernel_platform/common/out/arch/arm64/boot/Image ./AnyKernel3/
- rm -rf ./AnyKernel3/Image
 }
 case "$1" in
   setup_lz4)
