@@ -291,7 +291,7 @@ jobs:
 
           # Apply patches
           cd ./common
-          if [ "$DEVICES_NAME" != "oneplus_ace5_ultra" ]; then
+          if [ "$DEVICES_NAME" != "oneplus_ace5_ultra" ] && [ "${REPO_MANIFEST}" != "realme_GT7" ]; then
               files=(
                   "lib/lz4/lz4_compress.c"
                   "lib/lz4/lz4_decompress.c"
@@ -310,7 +310,7 @@ jobs:
               rm -rf ./main.sh
           fi
 
-          if [ "${REPO_MANIFEST}" != "oneplus_13t" ] && [ "${REPO_MANIFEST}" != "oneplus_ace5_ultra" ] && [ "${REPO_MANIFEST}" != "oneplus_pad_2_pro" ]; then
+          if [ "${REPO_MANIFEST}" != "oneplus_13t" ] && [ "${REPO_MANIFEST}" != "oneplus_ace5_ultra" ] && [ "${REPO_MANIFEST}" != "oneplus_pad_2_pro" ]&& [ "${REPO_MANIFEST}" != "realme_GT7" ]; then
               sed -i 's/-32,12 +32,38/-32,11 +32,37/g' 50_add_susfs_in_gki-android15-6.6.patch
               sed -i '/#include <trace\/hooks\/fs.h>/d' 50_add_susfs_in_gki-android15-6.6.patch
           fi
