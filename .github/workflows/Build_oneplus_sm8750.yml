@@ -296,8 +296,12 @@ jobs:
           cp -r ../SukiSU_patch/other/zram/lz4k_oplus ./common/lib/
 
           # Apply patches
+          if [ "$DEVICES_NAME" = "oneplus_ace5_ultra" ] || [ "${REPO_MANIFEST}" != "oneplus_13t" ]; then
+          sed -i 's/^\(SUBLEVEL[[:space:]]*=[[:space:]]*\).*/\166/' ./common/Makefile
+          fi
+          # Apply patches
           cd ./common
-          if [ "$DEVICES_NAME" != "oneplus_ace5_ultra" ] && [ "${REPO_MANIFEST}" != "realme_GT7" ]; then
+          if [ "$DEVICES_NAME" != "oneplus_ace5_ultra" ] || [ "${REPO_MANIFEST}" != "realme_GT7" ]; then
               files=(
                   "lib/lz4/lz4_compress.c"
                   "lib/lz4/lz4_decompress.c"
@@ -310,21 +314,22 @@ jobs:
                   fi
               done
 
-              cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.sh" ./
-              chmod +x main.sh
-              ./main.sh "setup_lz4"
-              rm -rf ./main.sh
+              cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
+              chmod +x main.bin
+              ./main.bin "setup_lz4"
+              rm -rf ./main.bin
           fi
 
-          if [ "${REPO_MANIFEST}" = "realme_GT7pro_Speed" ] && [ "${REPO_MANIFEST}" = "realme_GT7pro" ]; then
+          if [ "${REPO_MANIFEST}" = "realme_GT7pro_Speed" ] || [ "${REPO_MANIFEST}" = "realme_GT7pro" ]; then
               sed -i 's/-32,12 +32,38/-32,11 +32,37/g' 50_add_susfs_in_gki-android15-6.6.patch
               sed -i '/#include <trace\/hooks\/fs.h>/d' 50_add_susfs_in_gki-android15-6.6.patch
           fi
+
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
           cp ../../SukiSU_patch/hooks/syscall_hooks.patch ./
           patch -p1 -F 3 < syscall_hooks.patch
 
-          echo "完成"
+            echo "完成"
 
       # 缓存HMBird补丁文件
       - name: 🔧 Cache HMBird patch (缓存HMBird补丁)
