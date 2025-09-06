@@ -139,30 +139,6 @@ jobs:
             esac
           fi
 
-      # 设置内核构建时间
-      - name: ⚙️ Set KERNEL_TIME (设置构建时间)
-        id: set_kernel_time
-        run: |
-          if [ "$KEEP_ORIGINAL" = "false" ] && [ -n "$CUSTOM_TIME" ]; then
-            echo "使用自定义构建时间: $CUSTOM_TIME"
-            echo "KERNEL_TIME=$CUSTOM_TIME" >> $GITHUB_ENV
-          else
-            case "$DEVICES_NAME" in
-              oneplus_13 | oneplus_ace5_pro | realme_GT7pro | realme_GT7pro_Speed)
-                echo 'KERNEL_TIME=Tue Dec 17 23:36:49 UTC 2024' >> $GITHUB_ENV
-                ;;
-              oneplus_13t)
-                echo 'KERNEL_TIME=FriApr 25 01:56:53 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_pad_2_pro)
-                echo 'KERNEL_TIME=Tue Mar 4 09:04:13 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_ace5_ultra)
-                echo 'KERNEL_TIME=Fri Apr 18 19:35:07 UTC 2025' >> $GITHUB_ENV
-                ;;
-            esac
-          fi
-
       # 设置设备特定的CCACHE目录
       - name: ⚙️ Set device-specific CCACHE_DIR (设置对应机型Cceche路径)
         run: |
