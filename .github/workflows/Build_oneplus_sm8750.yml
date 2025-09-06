@@ -88,7 +88,7 @@ jobs:
               ;;
           esac
           case "${{ github.event.inputs.REPO_MANIFEST }}" in
-            oneplus_13 | oneplus_ace5_pro)
+            oneplus_ace5_pro)
               echo 'DEFAULT_SUFFIX=-android15-8-g4dc61d72e02f-abogki415959920-4k' >> $GITHUB_ENV
               ;;
             realme_GT7pro_Speed)
@@ -106,7 +106,7 @@ jobs:
             oneplus_pad_2_pro)
               echo 'DEFAULT_SUFFIX=-android15-8-g7b1f455c7143-ab13591283-4k' >> $GITHUB_ENV
               ;;
-            oneplus_ace5_ultra)
+            oneplus_13 | oneplus_ace5_ultra)
               echo 'DEFAULT_SUFFIX=-android15-8-g29d86c5fc9dd-abogki428889875-4k' >> $GITHUB_ENV
               ;;
           esac
@@ -115,7 +115,7 @@ jobs:
             echo "KERNEL_TIME=$CUSTOM_TIME" >> $GITHUB_ENV
           else
             case "${{ github.event.inputs.REPO_MANIFEST }}" in
-              oneplus_13 | oneplus_ace5_pro)
+              oneplus_ace5_pro)
                 echo 'KERNEL_TIME=Mon May 12 09:09:59 UTC 2025' >> $GITHUB_ENV
                 ;;
               realme_GT7pro_Speed)
@@ -133,7 +133,7 @@ jobs:
               oneplus_pad_2_pro)
                 echo 'KERNEL_TIME=Tue Jun  3 03:22:33 UTC 2025' >> $GITHUB_ENV
                 ;;
-              oneplus_ace5_ultra)
+              oneplus_13 | oneplus_ace5_ultra)
                 echo 'KERNEL_TIME=Tue Jul  1 19:48:18 UTC 2025' >> $GITHUB_ENV
                 ;;
             esac
@@ -295,13 +295,16 @@ jobs:
           cp -r ../SukiSU_patch/other/zram/lz4k/crypto/* ./common/crypto
           cp -r ../SukiSU_patch/other/zram/lz4k_oplus ./common/lib/
 
-          # Apply patches
           if [ "$DEVICES_NAME" = "oneplus_ace5_ultra" ] || [ "${REPO_MANIFEST}" != "oneplus_13t" ]; then
           sed -i 's/^\(SUBLEVEL[[:space:]]*=[[:space:]]*\).*/\166/' ./common/Makefile
           fi
           # Apply patches
           cd ./common
-          if [ "$DEVICES_NAME" != "oneplus_ace5_ultra" ] || [ "${REPO_MANIFEST}" != "realme_GT7" ]; then
+          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.sh" ./
+          chmod +x main.sh
+          if [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ]; then
+            echo "跳过 LZ4 操作（匹配到 $DEVICES_NAME）"
+          else
               files=(
                   "lib/lz4/lz4_compress.c"
                   "lib/lz4/lz4_decompress.c"
@@ -313,12 +316,9 @@ jobs:
                       rm "$file"
                   fi
               done
-
-              cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.sh" ./
-              chmod +x main.sh
               ./main.sh "setup_lz4"
-              rm -rf ./main.sh
           fi
+          rm -rf ./main.sh
 
           if [ "${REPO_MANIFEST}" = "realme_GT7pro_Speed" ] || [ "${REPO_MANIFEST}" = "realme_GT7pro" ]; then
               sed -i 's/-32,12 +32,38/-32,11 +32,37/g' 50_add_susfs_in_gki-android15-6.6.patch
@@ -329,7 +329,7 @@ jobs:
           cp ../../SukiSU_patch/hooks/syscall_hooks.patch ./
           patch -p1 -F 3 < syscall_hooks.patch
 
-            echo "完成"
+          echo "完成"
 
       # 缓存HMBird补丁文件
       - name: 🔧 Cache HMBird patch (缓存HMBird补丁)

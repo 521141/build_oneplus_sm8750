@@ -12,11 +12,12 @@ fi
 
 KSU_COMMIT_HASH=$(git ls-remote https://github.com/SukiSU-Ultra/SukiSU-Ultra.git refs/heads/susfs-main | awk '{print $1}' | cut -c1-8)
 
-KSU_VERSION_FULL="v${KSU_API_VERSION}-${KSU_COMMIT_HASH}-xueba"
-
+# KSU_VERSION_FULL="v${KSU_API_VERSION}-${KSU_COMMIT_HASH}-xueba"
+KSU_VERSION_FULL="v${KSU_API_VERSION}-${KSU_COMMIT_HASH}"
+# v\\$1-${KSU_COMMIT_HASH}-xueba
 VERSION_DEFINITIONS=$(cat << EOF
 define get_ksu_version_full
-v\\$1-${KSU_COMMIT_HASH}-xueba
+v\\$1-${KSU_COMMIT_HASH}
 endef
 
 KSU_VERSION_API := ${KSU_API_VERSION}
