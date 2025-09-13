@@ -101,12 +101,12 @@ jobs:
               echo 'DEFAULT_SUFFIX=-android15-8-gc6f5283046c6-ab12364222-4k' >> $GITHUB_ENV
               ;;
             oneplus_13t)
-              echo 'DEFAULT_SUFFIX=-android15-8-gd43086512890-abogki423825152-4k' >> $GITHUB_ENV
+              echo 'DEFAULT_SUFFIX=-android15-8-g29d86c5fc9dd-abogki428889875-4k' >> $GITHUB_ENV
               ;;
             oneplus_pad_2_pro)
               echo 'DEFAULT_SUFFIX=-android15-8-g7b1f455c7143-ab13591283-4k' >> $GITHUB_ENV
               ;;
-            oneplus_13 | oneplus_ace5_ultra)
+            oneplus_ace5_pro | oneplus_13 | oneplus_ace5_ultra)
               echo 'DEFAULT_SUFFIX=-android15-8-g29d86c5fc9dd-abogki428889875-4k' >> $GITHUB_ENV
               ;;
           esac
@@ -115,9 +115,6 @@ jobs:
             echo "KERNEL_TIME=$CUSTOM_TIME" >> $GITHUB_ENV
           else
             case "${{ github.event.inputs.REPO_MANIFEST }}" in
-              oneplus_ace5_pro)
-                echo 'KERNEL_TIME=Mon May 12 09:09:59 UTC 2025' >> $GITHUB_ENV
-                ;;
               realme_GT7pro_Speed)
                 echo 'KERNEL_TIME=Tue Dec 17 23:36:49 UTC 2024' >> $GITHUB_ENV
                 ;;
@@ -128,12 +125,12 @@ jobs:
                 echo 'KERNEL_TIME=Fri Sep 13 02:08:57 UTC 2024' >> $GITHUB_ENV
                 ;;
               oneplus_13t)
-                echo 'KERNEL_TIME=Tue Jun 10 12:12:23 UTC 2025' >> $GITHUB_ENV
+                echo 'KERNEL_TIME=Tue Jul  1 19:48:18 UTC 2025' >> $GITHUB_ENV
                 ;;
               oneplus_pad_2_pro)
                 echo 'KERNEL_TIME=Tue Jun  3 03:22:33 UTC 2025' >> $GITHUB_ENV
                 ;;
-              oneplus_13 | oneplus_ace5_ultra)
+              oneplus_ace5_pro | oneplus_13 | oneplus_ace5_ultra)
                 echo 'KERNEL_TIME=Tue Jul  1 19:48:18 UTC 2025' >> $GITHUB_ENV
                 ;;
             esac
@@ -419,14 +416,14 @@ jobs:
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2  Image
 
       # 应用Linux补丁
-      - name: Apply Linux Patch
-        run: |
-          cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
-          curl -LO https://github.com/521141/SukiSU_KernelPatch_patch/releases/download/v0.12.0/patch_linux
-          chmod +x patch_linux
-          ./patch_linux
-          rm -f Image
-          mv oImage Image
+      # - name: Apply Linux Patch
+      #   run: |
+      #     cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
+      #     curl -LO https://github.com/521141/SukiSU_KernelPatch_patch/releases/download/v0.12.0/patch_linux
+      #     chmod +x patch_linux
+      #     ./patch_linux
+      #     rm -f Image
+      #     mv oImage Image
 
       # 创建AnyKernel3刷机包
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
