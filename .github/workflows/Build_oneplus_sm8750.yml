@@ -136,30 +136,6 @@ jobs:
             esac
           fi
 
-      # 设置内核构建时间
-      - name: ⚙️ Set KERNEL_TIME (设置构建时间)
-        id: set_kernel_time
-        run: |
-          if [ "$KEEP_ORIGINAL" = "false" ] && [ -n "$CUSTOM_TIME" ]; then
-            echo "使用自定义构建时间: $CUSTOM_TIME"
-            echo "KERNEL_TIME=$CUSTOM_TIME" >> $GITHUB_ENV
-          else
-            case "$DEVICES_NAME" in
-              oneplus_13 | oneplus_ace5_pro | realme_GT7pro | realme_GT7pro_Speed)
-                echo 'KERNEL_TIME=Tue Dec 17 23:36:49 UTC 2024' >> $GITHUB_ENV
-                ;;
-              oneplus_13t)
-                echo 'KERNEL_TIME=FriApr 25 01:56:53 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_pad_2_pro)
-                echo 'KERNEL_TIME=Tue Mar 4 09:04:13 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_ace5_ultra)
-                echo 'KERNEL_TIME=Fri Apr 18 19:35:07 UTC 2025' >> $GITHUB_ENV
-                ;;
-            esac
-          fi
-
       # 设置设备特定的CCACHE目录
       - name: ⚙️ Set device-specific CCACHE_DIR (设置对应机型Cceche路径)
         run: |
@@ -262,7 +238,7 @@ jobs:
           mkdir -p kernel_workspace/kernel_platform
           cd kernel_workspace/kernel_platform
 
-          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/susfs-main/kernel/setup.sh" -o setup.sh && bash setup.sh susfs-dev
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/susfs-main/kernel/setup.sh" -o setup.sh && bash setup.sh susfs-main
           cd ./KernelSU
           KSU_VERSION=$(expr $(git rev-list --count main 2>/dev/null || echo 13000) + 10700)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
@@ -416,14 +392,14 @@ jobs:
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2  Image
 
       # 应用Linux补丁
-      # - name: Apply Linux Patch
-      #   run: |
-      #     cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
-      #     curl -LO https://github.com/521141/SukiSU_KernelPatch_patch/releases/download/v0.12.0/patch_linux
-      #     chmod +x patch_linux
-      #     ./patch_linux
-      #     rm -f Image
-      #     mv oImage Image
+ #     - name: Apply Linux Patch
+ #       run: |
+ #         cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
+ #         curl -LO https://github.com/521141/SukiSU_KernelPatch_patch/releases/download/v0.12.0/patch_linux
+ #         chmod +x patch_linux
+ #         ./patch_linux
+ #         rm -f Image
+ #         mv oImage Image
 
       # 创建AnyKernel3刷机包
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
