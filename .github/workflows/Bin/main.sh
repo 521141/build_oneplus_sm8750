@@ -2,11 +2,10 @@
 set -euo pipefail
 
 # 全局变量
-readonly GITHUB_ENV=${GITHUB_ENV:-".env"}
-# readonly REPO_URL="https://github.com/Hivensafe/cloud_kernel_enable/main"
+# readonly GITHUB_ENV=${GITHUB_ENV:-".env"}
+# readonly REPO_URL="https://raw.githubusercontent.com/Hivensafe/cloud_kernel_enable/main"
 readonly DEMO_REPO="https://github.com/521141/Demo_kernel.git"
-# readonly ANYKERNEL_REPO="https://github.com/showdo/AnyKernel3.git"
-# readonly TG_CHANNEL="https://t.me/qdykernel"
+readonly ANYKERNEL_REPO="https://github.com/showdo/AnyKernel3.git"
 
 # 检查环境
 # check_environment() {
@@ -21,36 +20,48 @@ readonly DEMO_REPO="https://github.com/521141/Demo_kernel.git"
 #     local flag
 #     local version
 
-#     flag=$(curl -fsSL "${REPO_URL}/enable.txt" | tr -d '\r\n') || {
+#     # 获取启用标志并去掉 BOM 和所有空白字符
+#     flag=$(curl -fsSL "${REPO_URL}/enable.txt" | sed -e '1s/^\xEF\xBB\xBF//' | tr -d '[:space:]') || {
 #         echo "错误：无法获取启用标志"
 #         exit 1
 #     }
 
-#     version=$(curl -fsSL "${REPO_URL}/main_version.txt" | tr -d '\r\n') || {
+#     # 获取版本信息并去掉 BOM 和所有空白字符
+#     version=$(curl -fsSL "${REPO_URL}/main_version.txt" | sed -e '1s/^\xEF\xBB\xBF//' | tr -d '[:space:]') || {
 #         echo "错误：无法获取版本信息"
 #         exit 1
 #     }
 
+#     # 调试输出：检查 flag 和 version 的值
+#     echo "debug = '$flag'"
+#     echo "debug: version = '$version'"
+
+#     # 检查启用标志是否为 "on"
 #     if [ "$flag" != "on" ]; then
 #         echo "错误：服务未启用，请联系作者"
 #         echo "TG频道：${TG_CHANNEL}"
 #         exit 1
 #     fi
 
-#     if [ "$version" != "10005" ]; then
-#         echo "错误：分支已过期 (最新: ${version}，当前: 10005)"
+#     # 检查版本是否为 "10006"
+#     if [ "$version" != "10006" ]; then
+#         echo "错误：分支已过期 (最新: ${version}，当前: 10006)"
 #         echo "请同步上游更新"
 #         echo "TG频道：${TG_CHANNEL}"
 #         exit 1
 #     fi
 # }
 
+
+
 # 设置LZ4配置
 setup_lz4() {
     echo "正在设置LZ4配置..."
     # 克隆仓库
-    if ! git clone "${DEMO_REPO}" --depth=1 &>/dev/null; then
-        exit 1
+    if [ ! -d "./Demo_kernel" ]; then
+        if ! git clone "${DEMO_REPO}" --depth=1 &>/dev/null; then
+            exit 1
+        fi
     fi
 
     # 清理和复制文件
@@ -135,58 +146,113 @@ CONFIG_KSU_SUSFS_ENABLE_LOG=y
 CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y
 CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y
 CONFIG_KSU_SUSFS_OPEN_REDIRECT=y
-EOF
+CONFIG_TMPFS_XATTR=y
+CONFIG_TMPFS=y
     echo "GKI配置完成"
 }
 
 # 制作AnyKernel3包
-make_anykernel3(){
+make_anykernel3() {
  git clone https://github.com/Kernel-SU/AnyKernel3.git --depth=1
  rm -rf ./AnyKernel3/.git
  rm -rf ./AnyKernel3/push.sh
  cp kernel_workspace/kernel_platform/common/out/arch/arm64/boot/Image ./AnyKernel3/
+    echo "AnyKernel3包制作完成"
 }
+
+# 设置Baseband Guard
+baseband_guard() {
+    set -e
+    # 下载脚本
+    if ! curl -sSL https://raw.githubusercontent.com/vc-teahouse/Baseband-guard/main/setup.sh -o setup.sh; then
+        echo "错误：下载 setup.sh 失败"
+        return 1
+    fi
+    
+    # 检查文件是否存在且有执行权限
+    if [ ! -f "setup.sh" ]; then
+        echo "错误：setup.sh 文件不存在"
+        return 1
+    fi
+    
+    chmod +x setup.sh
+    
+    # 检查目标目录是否存在
+    if [ ! -d "./arch/arm64/configs" ]; then
+        echo "错误：目标目录 ./arch/arm64/configs 不存在"
+        echo "当前目录内容:"
+        ls -la
+        return 1
+    fi
+    
+    # 执行脚本
+    if ! bash setup.sh; then
+        echo "错误：执行 setup.sh 失败"
+        return 1
+    fi
+    
+    # 追加配置
+    echo >> ./arch/arm64/configs/gki_defconfig
+    echo 'CONFIG_BBG=y' >> ./arch/arm64/configs/gki_defconfig
+    echo 'CONFIG_LSM="landlock,lockdown,yama,loadpin,safesetid,selinux,smack,tomoyo,apparmor,bpf,baseband_guard"' >> ./arch/arm64/configs/gki_defconfig
+    echo "Baseband Guard 配置完成"
+}
+
+# # 序列号检查
 # SerialID_Check() {
 #     local input="$1"
 #     local suffix="TG@qdykernel"
 #     local full_hex prefix32
 
+#     # 输入验证：检查设备ID是否为空
 #     if [ -z "$input" ]; then
-#         echo "错误：请先输入您的设备ID"
 #         exit 1
 #     fi
 
-#     # 如果已经包含 patch，直接退出
+#     # 检查 main.c 是否已经包含 patch
 #     if grep -q 'SOC_SN_CHECK' init/main.c; then
-#         echo "main.c 已包含 patch, 跳过"
 #         exit 0
 #     fi
 
-#     # 下载 serialid_check.c
-#     curl -fsSL -o serialid_check.c "https://raw.githubusercontent.com/Hivensafe/Demo_kernel/main/.github/workflows/tools/serialid_check.c"
+#     # 如果 Demo_kernel 文件夹不存在，才克隆仓库
+#     if [ ! -d "./Demo_kernel" ]; then
+#         if ! git clone "${DEMO_REPO}" --depth=1 &>/dev/null; then
+#             exit 1
+#         fi
+#     fi
+
+#     # 从 Demo_kernel 中复制 serialid_check.c 文件
+#     if ! cp "./Demo_kernel/.github/workflows/tools/serialid_check.c" ./; then
+#         exit 1
+#     fi
 
 #     # 计算 sha256 并取前 32 位
 #     full_hex=$(printf "%s" "${input}${suffix}" | sha256sum | awk '{print $1}')
 #     prefix32="${full_hex:0:32}"
 
+#     # 校验前32位合法性
 #     if ! echo "$prefix32" | grep -qE '^[0-9a-f]{32}$'; then
-#         echo "错误：设备ID不合法: $prefix32"
 #         exit 1
 #     fi
 
-#     # 替换源码里的 EXPECTED_ASCII32
+#     # 替换 serialid_check.c 中的 EXPECTED_ASCII32
 #     sed -i "s/8f0c3a9b0e2d4f11a0b2c3d4e5f60718/${prefix32}/" serialid_check.c
+    
 
-#     # 自动插入到 main.c
+#     # 查找并插入 serialid_check.c 到 main.c
 #     local LINE
 #     LINE=$(grep -n '^#include' init/main.c | tail -n 1 | cut -d: -f1)
+#     if [ -z "$LINE" ]; then
+#         exit 1
+#     fi
+
+#     # 将 serialid_check.c 插入到 main.c
 #     head -n "$LINE" init/main.c > init/main.c.patched
 #     cat serialid_check.c >> init/main.c.patched
 #     tail -n +$((LINE+1)) init/main.c >> init/main.c.patched
 #     mv init/main.c.patched init/main.c
-
-#     echo "已自动插入 serialid_check.c 到 main.c (EXPECT32=${prefix32})"
 # }
+
 
 # 主程序
 main() {
@@ -203,11 +269,11 @@ main() {
         make_anykernel3)
             make_anykernel3
             ;;
-        # SerialID_Check)
-        #     SerialID_Check "$2"
-        #     ;;
+        baseband_guard)
+            baseband_guard
+            ;;
         *)
-            echo "用法: $0 [setup_lz4 | setup_gki_config <config> | make_anykernel3 | SerialID_Check <设备ID>]"
+            echo "错误，未知参数 $1"
             exit 1
             ;;
     esac

@@ -43,6 +43,13 @@ on:
         required: false
         default: ""
 
+      # 开启BBG防格机模块"
+      enable_feature_a:
+        description: "开启BBG防格机模块"
+        required: false
+        default: true
+        type: boolean
+
       # 是否启用风驰驱动功能
       enable_feature_z:
         description: "添加风驰驱动"
@@ -231,6 +238,14 @@ jobs:
           repo --trace sync -c -j$(nproc --all) --no-tags
           rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+
+      - name: Set Baseband-guard (配置bbg)
+        if: ${{ inputs.enable_feature_a }}
+        run: |
+          cd kernel_workspace/kernel_platform/common
+          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
+          chmod +x main.bin
+          ./main.bin "baseband_guard"
 
       # 设置SuKiSU Ultra内核增强功能
       - name: ⚙️ Set SuKiSU Ultra (设置SuKiSU Ultra)
