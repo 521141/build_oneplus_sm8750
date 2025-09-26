@@ -243,8 +243,8 @@ jobs:
         if: ${{ inputs.enable_feature_a }}
         run: |
           cd kernel_workspace/kernel_platform/common
-          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
-          chmod +x main.bin
+          cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.sh" ./
+          chmod +x main.sh
           ./main.bin "baseband_guard"
 
       # 设置SuKiSU Ultra内核增强功能
