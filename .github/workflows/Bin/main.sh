@@ -116,39 +116,59 @@ setup_gki_config() {
 
     echo "正在配置GKI..."
 
-    # 基本配置
-    cat <<EOF >>"$defconfig"
-CONFIG_KSU=y
-CONFIG_KSU_SUSFS_SUS_SU=n
-CONFIG_KSU_MANUAL_HOOK=y
-CONFIG_KPM=y
-CONFIG_CRYPTO_LZ4=y
-CONFIG_CRYPTO_LZ4HC=y
-CONFIG_CRYPTO_LZ4KD=y
-CONFIG_CRYPTO_ZSTD=y
-CONFIG_F2FS_FS_COMPRESSION=y
-CONFIG_F2FS_FS_LZ4=y
-CONFIG_F2FS_FS_LZ4HC=y
-CONFIG_F2FS_FS_ZSTD=y
-CONFIG_KERNEL_LZ4=y
-CONFIG_KSU_SUSFS=y
-CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y
-CONFIG_KSU_SUSFS_SUS_PATH=y
-CONFIG_KSU_SUSFS_SUS_MOUNT=y
-CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y
-CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y
-CONFIG_KSU_SUSFS_SUS_KSTAT=y
-CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n
-CONFIG_KSU_SUSFS_TRY_UMOUNT=y
-CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y
-CONFIG_KSU_SUSFS_SPOOF_UNAME=y
-CONFIG_KSU_SUSFS_ENABLE_LOG=y
-CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y
-CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y
-CONFIG_KSU_SUSFS_OPEN_REDIRECT=y
-CONFIG_TMPFS_XATTR=y
-CONFIG_TMPFS=y
-EOF
+    # 定义需要设置的配置项数组
+    local config_items=(
+        "CONFIG_KSU=y"
+        "CONFIG_KSU_SUSFS_SUS_SU=n"
+        "CONFIG_KSU_MANUAL_HOOK=y"
+        "CONFIG_KPM=y"
+        "CONFIG_CRYPTO_LZ4=y"
+        "CONFIG_CRYPTO_LZ4HC=y"
+        "CONFIG_CRYPTO_LZ4KD=y"
+        "CONFIG_CRYPTO_ZSTD=y"
+        "CONFIG_F2FS_FS_COMPRESSION=y"
+        "CONFIG_F2FS_FS_LZ4=y"
+        "CONFIG_F2FS_FS_LZ4HC=y"
+        "CONFIG_F2FS_FS_ZSTD=y"
+        "CONFIG_KERNEL_LZ4=y"
+        "CONFIG_KSU_SUSFS=y"
+        "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y"
+        "CONFIG_KSU_SUSFS_SUS_PATH=y"
+        "CONFIG_KSU_SUSFS_SUS_MOUNT=y"
+        "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y"
+        "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y"
+        "CONFIG_KSU_SUSFS_SUS_KSTAT=y"
+        "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n"
+        "CONFIG_KSU_SUSFS_TRY_UMOUNT=y"
+        "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y"
+        "CONFIG_KSU_SUSFS_SPOOF_UNAME=y"
+        "CONFIG_KSU_SUSFS_ENABLE_LOG=y"
+        "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y"
+        "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y"
+        "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y"
+        "CONFIG_TMPFS_XATTR=y"
+        "CONFIG_TMPFS=y"
+    )
+
+    # 遍历每个配置项
+    for config in "${config_items[@]}"; do
+        # 提取配置项的名称（例如从 "CONFIG_KSU=y" 中提取 "CONFIG_KSU"）
+        local config_name="${config%%=*}"  # 使用 %% 从右边删除第一个 = 及其右边的所有内容
+
+        # 检查配置项是否已存在（忽略注释行）
+        if grep -qE "^(# )?$config_name=" "$defconfig"; then
+            # 如果存在，则替换该行
+            # 注意：sed 中的 & 代表匹配到的整个内容
+            # 这里使用 \1 捕获组来保留可能的注释前缀（# 或 # ）
+            sed -i "s/^\(# \)\?$config_name=.*/$config/" "$defconfig"
+            echo "已更新: $config"
+        else
+            # 如果不存在，则追加到文件末尾
+            echo "$config" >> "$defconfig"
+            echo "已添加: $config"
+        fi
+    done
+
     echo "GKI配置完成"
 }
 
