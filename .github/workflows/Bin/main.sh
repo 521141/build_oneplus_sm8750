@@ -120,7 +120,8 @@ setup_gki_config() {
     local config_items=(
         "CONFIG_KSU=y"
         "CONFIG_KSU_SUSFS_SUS_SU=n"
-        "CONFIG_KSU_MANUAL_HOOK=y"
+        #"CONFIG_KSU_MANUAL_HOOK=y"
+        "CONFIG_KSU_TRACEPOINT_HOOK=y"
         "CONFIG_KPM=y"
         "CONFIG_CRYPTO_LZ4=y"
         "CONFIG_CRYPTO_LZ4HC=y"
