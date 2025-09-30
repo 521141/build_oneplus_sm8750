@@ -4,7 +4,7 @@ set -euo pipefail
 # 全局变量
 # readonly GITHUB_ENV=${GITHUB_ENV:-".env"}
 # readonly REPO_URL="https://raw.githubusercontent.com/Hivensafe/cloud_kernel_enable/main"
-readonly DEMO_REPO="https://github.com/521141/Demo_kernel.git"
+readonly DEMO_REPO="https://github.com/521141/Demo_kernel_1.git"
 readonly ANYKERNEL_REPO="https://github.com/showdo/AnyKernel3.git"
 
 # 检查环境
