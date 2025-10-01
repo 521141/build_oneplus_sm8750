@@ -119,7 +119,6 @@ setup_gki_config() {
     # 定义需要设置的配置项数组
     local config_items=(
         "CONFIG_KSU=y"
-        "CONFIG_KSU_SUSFS_SUS_SU=n"
         # "CONFIG_KSU_MANUAL_HOOK=y"
         "CONFIG_KSU_TRACEPOINT_HOOK=y"
         "CONFIG_KPM=y"
@@ -133,6 +132,7 @@ setup_gki_config() {
         "CONFIG_F2FS_FS_ZSTD=y"
         "CONFIG_KERNEL_LZ4=y"
         "CONFIG_KSU_SUSFS=y"
+        "CONFIG_KSU_SUSFS_SUS_SU=n"
         "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y"
         "CONFIG_KSU_SUSFS_SUS_PATH=y"
         "CONFIG_KSU_SUSFS_SUS_MOUNT=y"
