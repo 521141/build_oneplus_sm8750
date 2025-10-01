@@ -284,7 +284,7 @@ jobs:
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         run: |
           cd kernel_workspace
-          git clone https://github.com/ShirkNeko/susfs4ksu.git -b gki-android15-6.6
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android15-6.6
           git clone https://github.com/521141/SukiSU_patch.git
 
           cd kernel_platform
