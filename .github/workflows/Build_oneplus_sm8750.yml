@@ -285,7 +285,7 @@ jobs:
         run: |
           cd kernel_workspace
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android15-6.6
-          git clone https://github.com/SukiSU-Ultra/SukiSU_patch.git
+          git clone https://github.com/521141/SukiSU_patch.git
 
           cd kernel_platform
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android15-6.6.patch ./common/
@@ -328,8 +328,8 @@ jobs:
           fi
 
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
-          cp ../../SukiSU_patch/hooks/scope_min_manual_hooks_v1.5.patch ./
-          patch -p1 -F 3 < scope_min_manual_hooks_v1.5.patch
+          cp ../../SukiSU_patch/hooks/tracepoint_hooks_6.x_v1.1.patch ./
+          patch -p1 -F 3 < tracepoint_hooks_6.x_v1.1.patch
 
           echo "完成"
 
