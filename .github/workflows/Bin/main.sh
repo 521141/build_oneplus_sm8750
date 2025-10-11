@@ -169,7 +169,18 @@ setup_gki_config() {
             echo "已添加: $config"
         fi
     done
-
+cat <<EOF >>"$defconfig"
+CONFIG_NET_SCH_FQ_CODEL=y
+CONFIG_NET_SCH_FQ=y
+CONFIG_NET_SCH_SFQ=y
+CONFIG_NET_SCH_HTB=y
+CONFIG_NET_SCH_TBF=y
+CONFIG_NET_SCH_SFB=y
+CONFIG_NET_SCH_RED=y
+CONFIG_NET_SCH_INGRESS=y
+CONFIG_DEFAULT_FQ_CODEL=y
+CONFIG_DEFAULT_NET_SCH="fq_codel"
+EOF
     echo "GKI配置完成"
 }
 
