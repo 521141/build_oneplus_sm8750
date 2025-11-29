@@ -385,14 +385,6 @@ jobs:
 
       - name: 🔧 Apply Sched Patch (应用完美风驰补丁)
         run: |
-          cd kernel_workspace
-          echo "内核后缀: $DEFAULT_SUFFIX"
-          ESCAPED_SUFFIX=$(printf '%s\n' "$DEFAULT_SUFFIX" | sed 's:[\/&]:\\&:g')
-          sudo sed -i "s/-4k/$ESCAPED_SUFFIX/g" ./common/arch/arm64/configs/gki_defconfig
-          sed -i 's/${scm_version}//' ./common/scripts/setlocalversion
-
-      - name: 🔧 Apply Sched Patch (应用完美风驰补丁)
-        run: |
           if [ "$SCHED_FILE" = "none" ]; then
             echo "该机型自带风驰，跳过应用补丁"
           else
