@@ -294,6 +294,7 @@ jobs:
             ls -la
             exit 1
           fi
+          ./setup.sh
 
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         if: ${{ env.ENABLE_FEATURE_C == 'true' }}
