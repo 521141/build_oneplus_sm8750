@@ -70,7 +70,6 @@ on:
 
 # 工作流任务定义
 jobs:
-  # 编译任务
   build:
     name: Build_${{ github.event.inputs.DEVICES_NAME }}
     runs-on: ubuntu-latest
@@ -173,7 +172,7 @@ jobs:
           rm -rf kernel_workspace
           mkdir kernel_workspace
           cd kernel_workspace
-
+          
           sudo apt-mark hold firefox &&
           sudo apt-mark hold libc-bin &&
           sudo apt purge man-db &&
@@ -183,18 +182,18 @@ jobs:
           echo "正在克隆源码仓库..."
           if [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ] || [ "${DEVICES_NAME}" = "realme_GT8" ]; then
             aria2c -s16 -x16 -k1M https://github.com/realme-kernel-opensource/realme_GT7pro-AndroidB-common-source/archive/refs/heads/master.zip -o common.zip
-            unzip -q common.zip &&
+            unzip -q common.zip && 
             mv "realme_GT7pro-AndroidB-common-source-master" common
           elif [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ]; then
             aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_oneplus_mt6991/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
-            unzip -q common.zip &&
+            unzip -q common.zip && 
             mv "android_kernel_oneplus_mt6991-oneplus-${REPO_MANIFEST}" common
           else
             aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
-            unzip -q common.zip &&
+            unzip -q common.zip && 
             mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common
           fi
-          rm -rf common.zip
+          rm -rf common.zip 
           echo "正在克隆llvm-clang18工具链..."
           mkdir -p clang18 &&
           aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang18-r510928/clang-r510928.zip -o clang.zip &&
@@ -212,7 +211,7 @@ jobs:
             sed -i 's/ -dirty//g' "$f"
             sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' "$f"
           done
-
+          
       - name: 🛠 Set ccache DIR(配置ccache目录)
         run: |
           echo "CCACHE_DIR=$HOME/.ccache_${{ env.DEVICES_NAME }}" >> $GITHUB_ENV
@@ -230,7 +229,7 @@ jobs:
           restore-keys: |
             ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-
             ccache-neov2-${{ env.DEVICES_NAME }}-
-
+      
       - name: 📥 Init ccache (初始化配置ccache)
         run: |
           # 设置ccache环境变量
@@ -240,31 +239,30 @@ jobs:
           export CCACHE_HARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
           export CCACHE_MAXSIZE="${{ env.CCACHE_MAXSIZE }}"
-
+          
           # 确保ccache目录存在
           mkdir -p "$CCACHE_DIR"
-
+          
           # 每次运行都重新配置缓存大小
           echo "配置ccache缓存大小为: $CCACHE_MAXSIZE"
           ccache -M "$CCACHE_MAXSIZE"
           ccache -o compression=true
-
+          
           # 显示初始缓存状态
           echo "ccache初始状态:"
           ccache -s
-
+          
           # 如果缓存恢复命中，显示详细信息
           if [ "${{ steps.ccache-restore.outputs.cache-hit }}" == 'true' ]; then
             echo "ccache缓存命中详情:"
             ccache -sv
           fi
 
-
       - name: 🔧 apply lz4 1.10.0 & zstd 1.5.7 patches (添加lz4 1.10.0 & zstd 1.5.7补丁)
         run: |
           echo "正在添加lz4 1.10.0 & zstd 1.5.7补丁…"
           cd kernel_workspace
-          git clone https://github.com/521141/oppo_oplus_realme_sm8750.git
+          git clone https://github.com/cctv18/oppo_oplus_realme_sm8750.git
           cp ./oppo_oplus_realme_sm8750/zram_patch/001-lz4.patch ./common
           cp ./oppo_oplus_realme_sm8750/zram_patch/lz4armv8.S ./common/lib
           cp ./oppo_oplus_realme_sm8750/zram_patch/002-zstd.patch ./common/
@@ -296,7 +294,6 @@ jobs:
             ls -la
             exit 1
           fi
-          ./setup.sh
 
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         if: ${{ env.ENABLE_FEATURE_C == 'true' }}
