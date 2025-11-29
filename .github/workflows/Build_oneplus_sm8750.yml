@@ -480,7 +480,7 @@ jobs:
       # 应用Linux补丁
       - name: Apply Linux Patch
         run: |
-          cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
+          cd kernel_workspace/common/out/arch/arm64/boot
           curl -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.2/patch_linux
           chmod +x patch_linux
           ./patch_linux
