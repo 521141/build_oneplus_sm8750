@@ -449,6 +449,7 @@ jobs:
               echo "正在打OGKI转换GKI补丁"
               patch -p1 -F 3 < hmbird_patch.patch
               echo "OGKI转换GKI_patch完成"
+          fi
 
       # 编译内核
       - name: 🔨 Build Kernel (构建内核)
