@@ -75,8 +75,6 @@ make_anykernel3() {
         echo "错误：复制内核镜像失败"
         exit 1
     fi
-
-    rm -f ./AnyKernel3/Image
     echo "AnyKernel3包制作完成"
 }
 
