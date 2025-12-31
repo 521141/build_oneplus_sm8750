@@ -172,7 +172,7 @@ jobs:
           rm -rf kernel_workspace
           mkdir kernel_workspace
           cd kernel_workspace
-
+          
           sudo apt-mark hold firefox &&
           sudo apt-mark hold libc-bin &&
           sudo apt purge man-db &&
@@ -211,7 +211,7 @@ jobs:
             sed -i 's/ -dirty//g' "$f"
             sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' "$f"
           done
-
+          
       - name: 🛠 Set ccache DIR(配置ccache目录)
         run: |
           echo "CCACHE_DIR=$HOME/.ccache_${{ env.DEVICES_NAME }}" >> $GITHUB_ENV
@@ -229,7 +229,7 @@ jobs:
           restore-keys: |
             ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-
             ccache-neov2-${{ env.DEVICES_NAME }}-
-
+      
       - name: 📥 Init ccache (初始化配置ccache)
         run: |
           # 设置ccache环境变量
@@ -239,25 +239,25 @@ jobs:
           export CCACHE_HARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
           export CCACHE_MAXSIZE="${{ env.CCACHE_MAXSIZE }}"
-
+          
           # 确保ccache目录存在
           mkdir -p "$CCACHE_DIR"
-
+          
           # 每次运行都重新配置缓存大小
           echo "配置ccache缓存大小为: $CCACHE_MAXSIZE"
           ccache -M "$CCACHE_MAXSIZE"
           ccache -o compression=true
-
+          
           # 显示初始缓存状态
           echo "ccache初始状态:"
           ccache -s
-
+          
           # 如果缓存恢复命中，显示详细信息
           if [ "${{ steps.ccache-restore.outputs.cache-hit }}" == 'true' ]; then
             echo "ccache缓存命中详情:"
             ccache -sv
           fi
-
+         
       - name: 🔧 apply lz4 1.10.0 & zstd 1.5.7 patches (添加lz4 1.10.0 & zstd 1.5.7补丁)
         run: |
           echo "正在添加lz4 1.10.0 & zstd 1.5.7补丁…"
@@ -269,7 +269,7 @@ jobs:
           cd ./common
           git apply -p1 < 001-lz4.patch || true
           patch -p1 < 002-zstd.patch || true
-
+          
       - name: 🔧 Set Baseband-guard (开启BBG基带守护)
         if: ${{ env.ENABLE_BBG == 'true' }}
         run: |
@@ -278,6 +278,7 @@ jobs:
           curl -LSs https://raw.githubusercontent.com/vc-teahouse/Baseband-guard/main/setup.sh | bash
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' ./security/Kconfig
 
+          
       - name: ⚙️ Set SuKiSU Ultra (设置SuKiSU Ultra)
         run: |
           cd kernel_workspace
@@ -337,6 +338,7 @@ jobs:
           grep "KSU_VERSION_FULL" kernel/Kbuild # 确认版本定义存在
           echo "SukiSU版本号: v${KSU_API_VERSION}-${GIT_COMMIT_HASH}"
 
+            
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         run: |
           cd kernel_workspace
@@ -356,7 +358,10 @@ jobs:
             echo "CONFIG_HYMOFS=y" >> ./arch/arm64/configs/gki_defconfig
           fi
 
-      - name: 🔧 Set gki_defconfig (设置编译配置)
+
+
+          
+      - name: 🔧 Set gki_defconfig (设置编译配置) 
         run: |
           cd kernel_workspace
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -457,7 +462,7 @@ jobs:
           else
             echo "未启用风驰，则需应用OGKI转换GKI补丁"
               sed -i '1iobj-y += hmbird_patch.o' drivers/Makefile
-              cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/hmbird_patch.patch" ./hmbird_patch.patch
+               cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/hmbird_patch.patch" ./hmbird_patch.patch
               echo "正在打OGKI转换GKI补丁"
               patch -p1 -F 3 < hmbird_patch.patch
               echo "OGKI转换GKI_patch完成"
