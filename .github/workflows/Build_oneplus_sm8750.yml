@@ -528,14 +528,14 @@ jobs:
           ccache -s
 
       # 应用Linux补丁
-      # - name: Apply Linux Patch
-      #   run: |
-      #     cd kernel_workspace/common/out/arch/arm64/boot
-      #     curl -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.5/patch_linux
-      #     chmod +x patch_linux
-      #     ./patch_linux
-      #     rm -f Image
-      #     mv oImage Image
+      - name: Apply Linux Patch
+        run: |
+           cd kernel_workspace/common/out/arch/arm64/boot
+           curl -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.2/patch_linux
+           chmod +x patch_linux
+           ./patch_linux
+           rm -f Image
+           mv oImage Image
 
       # 创建AnyKernel3刷机包
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
