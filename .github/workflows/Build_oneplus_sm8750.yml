@@ -71,7 +71,7 @@ jobs:
       CUSTOM_KERNEL_TIME:     ${{ github.event.inputs.custom_kernel_time }}
       ENABLE_SCX:       ${{ github.event.inputs.enable_scx }}
       ENABLE_BBG:       ${{ github.event.inputs.enable_bbg }}
-      ENABLE_UNICODE_BYPASS: ${{ github.event.inputs.enable_unicode_bypass
+      ENABLE_UNICODE_BYPASS: ${{ github.event.inputs.enable_unicode_bypass }}
     steps:
       - uses: actions/checkout@v4
         with:
