@@ -347,6 +347,7 @@ jobs:
             patch -p1 < unicode_bypass_fix.patch
           fi
 
+
       - name: 🔧 Set gki_defconfig (设置编译配置) 
         run: |
           cd kernel_workspace
