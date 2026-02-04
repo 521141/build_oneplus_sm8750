@@ -7,6 +7,14 @@ on:
   # 手动触发工作流
   workflow_dispatch:
     inputs:
+      KSU_TYPE:
+        description: "📝请选择要集成的KSU："
+        required: true
+        type: choice
+        options:
+          - 'ReSukiSU'
+          - 'SukiSU-Ultra'
+        default: 'ReSukiSU'
       DEVICES_NAME:
         description: "📝请选择要编译的机型："
         required: true
