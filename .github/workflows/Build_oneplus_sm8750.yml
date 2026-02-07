@@ -277,7 +277,7 @@ jobs:
           cd kernel_workspace
           echo "正在配置${{ env.KSU_TYPE }}..."
           if [ "${{ env.KSU_TYPE }}" == 'ReSukiSU' ]; then
-            curl -LSs "https://raw.githubusercontent.com/${{ env.KSU_TYPE }}/${{ env.KSU_TYPE }}/refs/heads/main/kernel/setup.sh" | bash -s main
+            curl -LSs "https://raw.githubusercontent.com/521141/${{ env.KSU_TYPE }}/refs/heads/main/kernel/setup.sh" | bash -s main
             echo 'KSU_FULL_NAME_FORMAT="%TAG_NAME%-%COMMIT_SHA%-Re"' >> ./common/arch/arm64/configs/gki_defconfig
             cd ./KernelSU
             KSU_VERSION=$(expr $(git rev-list --count main) + 30700 2>/dev/null || echo 114514)
