@@ -15,6 +15,7 @@ on:
           - "ReSukiSU"
           - "SukiSU-Ultra"
         default: "ReSukiSU"
+
       DEVICES_NAME:
         description: "📝请选择要编译的机型："
         required: true
@@ -73,15 +74,14 @@ jobs:
       CUSTOM_KERNEL_TIME: ${{ github.event.inputs.custom_kernel_time }}
       ENABLE_SCX: ${{ github.event.inputs.enable_scx }}
       ENABLE_BBG: ${{ github.event.inputs.enable_bbg }}
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
         run: |
-          if [ "${{ env.KSU_TYPE }}" == 'ReSukiSU' ]; then
-            echo "KSUVER_TAG=-ReSukiSU" >> $GITHUB_ENV
-          fi
           case "${{ env.DEVICES_NAME }}" in
             oneplus_ace5_pro)
               echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_ace5_pro" >> $GITHUB_ENV
@@ -120,6 +120,7 @@ jobs:
             realme_GT8)
               echo "SCHED_FILE=none" >> $GITHUB_ENV
           esac
+
           if [ "${{ env.KEEP_ORIGINAL_SETTINGS }}" = "true" ] && [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
             case "${{ env.DEVICES_NAME }}" in
              oneplus_pad_2_pro)
@@ -131,12 +132,13 @@ jobs:
             oneplus_13 | oneplus_ace5_pro | oneplus_ace_6 | oneplus_13t | realme_GT7pro | realme_GT7pro_Speed | realme_GT8)
               echo 'DEFAULT_SUFFIX=-android15-8-gf4dc45704e54-abogki446052083-4k' >> $GITHUB_ENV
               ;;
-          esac
+            esac
             echo "使用原官核名称：${{ env.DEFAULT_SUFFIX }}"
           else
             echo "使用自定义名称: ${{ github.event.inputs.custom_kernel_suffix }}"
             echo "DEFAULT_SUFFIX=${{ github.event.inputs.custom_kernel_suffix }}" >> $GITHUB_ENV
           fi
+
           if [ "${{ env.KEEP_ORIGINAL_SETTINGS }}" = "true" ] && [ -z "${{ github.event.inputs.custom_kernel_time }}" ]; then
             case "${{ env.DEVICES_NAME }}" in
               oneplus_pad_2_pro)
@@ -167,6 +169,7 @@ jobs:
           sudo rm -rf /var/lib/man-db/auto-update &&
           sudo apt update &&
           sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev dos2unix ccache p7zip-full &
+
           echo "正在克隆源码仓库..."
           if [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ] || [ "${DEVICES_NAME}" = "realme_GT8" ]; then
             aria2c -s16 -x16 -k1M https://github.com/realme-kernel-opensource/realme_GT7Pro-AndroidB-common-source/archive/refs/heads/master.zip -o common.zip
@@ -182,16 +185,19 @@ jobs:
             mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common
           fi
           rm -rf common.zip 
+
           echo "正在克隆llvm-clang18工具链..."
           mkdir -p clang18 &&
           aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang18-r510928/clang-r510928.zip -o clang.zip &&
           unzip -q clang.zip -d clang18 &&
           rm -rf clang.zip &
+
           echo "正在克隆构建工具..." &&
           aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang18-r510928/build-tools.zip -o build-tools.zip &&
           unzip -q build-tools.zip &&
           rm -rf build-tools.zip &
           wait
+
           echo "所有源码及llvm-Clang18工具链初始化完成！"
           echo "正在去除 ABI 保护 & 去除 dirty 后缀..."
           rm common/android/abi_gki_protected_exports_* || true
@@ -270,41 +276,45 @@ jobs:
         run: |
           cd kernel_workspace
           echo "正在配置${{ env.KSU_TYPE }}..."
-          if [ "${{ env.KSU_TYPE }}" = "ReSukiSU" ]; then
+          if [ "${{ env.KSU_TYPE }}" == 'ReSukiSU' ]; then
             curl -LSs "https://raw.githubusercontent.com/521141/${{ env.KSU_TYPE }}/refs/heads/main/kernel/setup.sh" | bash -s main
+            echo 'KSU_FULL_NAME_FORMAT="%TAG_NAME%-%COMMIT_SHA%-Re"' >> ./common/arch/arm64/configs/gki_defconfig
+            cd ./KernelSU
+            KSU_VERSION=$(expr $(git rev-list --count main) + 30700 2>/dev/null || echo 114514)
+            echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+            echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
           else
             curl -LSs "https://raw.githubusercontent.com/521141/${{ env.KSU_TYPE }}/refs/heads/main/kernel/setup.sh" | bash -s builtin
+            cd ./KernelSU
+            GIT_COMMIT_HASH=$(git rev-parse --short=8 HEAD)
+            echo "当前提交哈希: $GIT_COMMIT_HASH"
+            export KSU_VERSION=$KSU_VERSION
+            for i in {1..3}; do
+              KSU_API_VERSION=$(curl -s "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/builtin/kernel/Kbuild" | 
+                grep -m1 "KSU_VERSION_API :=" | 
+                awk -F'= ' '{print $2}' | 
+                tr -d '[:space:]')
+              [ -n "$KSU_API_VERSION" ] && break || sleep 1
+            done
+            [ -z "$KSU_API_VERSION" ] && KSU_API_VERSION="4.1.0"
+            echo "KSU_API_VERSION=$KSU_API_VERSION" >> $GITHUB_ENV
+            VERSION_DEFINITIONS=$'define get_ksu_version_full\nv\\$1-'"$GIT_COMMIT_HASH"$'\nendef\n\nKSU_VERSION_API := '"$KSU_API_VERSION"$'\nKSU_VERSION_FULL := v'"$KSU_API_VERSION"$'-'"$GIT_COMMIT_HASH"$''
+            
+            sed -i '/define get_ksu_version_full/,/endef/d' kernel/Kbuild
+            sed -i '/KSU_VERSION_API :=/d' kernel/Kbuild
+            sed -i '/KSU_VERSION_FULL :=/d' kernel/Kbuild
+            awk -v def="$VERSION_DEFINITIONS" '
+              /REPO_OWNER :=/ {print; print def; inserted=1; next}
+              1
+              END {if (!inserted) print def}
+            ' kernel/Kbuild > kernel/Kbuild.tmp && mv kernel/Kbuild.tmp kernel/Kbuild
+            KSU_VERSION=$(expr $(git rev-list --count main) + 37185 2>/dev/null || echo 114514)
+            echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+            echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
+            grep -A10 "REPO_OWNER" kernel/Kbuild
+            grep "KSU_VERSION_FULL" kernel/Kbuild
+            echo "SukiSU版本号: v${KSU_API_VERSION}-${GIT_COMMIT_HASH}"
           fi
-          cd ./KernelSU
-          GIT_COMMIT_HASH=$(git rev-parse --short=8 HEAD)
-          echo "当前提交哈希: $GIT_COMMIT_HASH"
-          export KSU_VERSION=$KSU_VERSION
-          for i in {1..3}; do
-            KSU_API_VERSION=$(curl -s "https://raw.githubusercontent.com/${{ env.KSU_TYPE }}/${{ env.KSU_TYPE }}/refs/heads/main/kernel/Kbuild" | 
-              grep -m1 "KSU_VERSION_API :=" | 
-              awk -F'= ' '{print $2}' | 
-              tr -d '[:space:]')
-            [ -n "$KSU_API_VERSION" ] && break || sleep 1
-          done
-          [ -z "$KSU_API_VERSION" ] && KSU_API_VERSION="4.1.0"
-          echo "KSU_API_VERSION=$KSU_API_VERSION" >> $GITHUB_ENV
-          VERSION_DEFINITIONS=$'define get_ksu_version_full\nv\\$1-'"$GIT_COMMIT_HASH"$'${{ env.KSUVER_TAG }}\nendef\n\nKSU_VERSION_API := '"$KSU_API_VERSION"$'\nKSU_VERSION_FULL := v'"$KSU_API_VERSION"$'-'"$GIT_COMMIT_HASH"$'${{ env.KSUVER_TAG }}'
-          sed -i '/define get_ksu_version_full/,/endef/d' kernel/Kbuild
-          sed -i '/KSU_VERSION_API :=/d' kernel/Kbuild
-          sed -i '/KSU_VERSION_FULL :=/d' kernel/Kbuild
-          awk -v def="$VERSION_DEFINITIONS" '
-            /REPO_OWNER :=/ {print; print def; inserted=1; next}
-            1
-            END {if (!inserted) print def}
-          ' kernel/Kbuild > kernel/Kbuild.tmp && mv kernel/Kbuild.tmp kernel/Kbuild
-
-          KSU_VERSION=$(expr $(git rev-list --count main) + ${{ env.KSUVER_TAG_Number }} 2>/dev/null || echo 114514)
-          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-          echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
-
-          grep -A10 "REPO_OWNER" kernel/Kbuild 
-          grep "KSU_VERSION_FULL" kernel/Kbuild 
-          echo "${{ env.KSU_TYPE }}版本号: v${KSU_API_VERSION}-${GIT_COMMIT_HASH}${{ env.KSUVER_TAG }}"
 
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         run: |
@@ -379,7 +389,7 @@ jobs:
           echo "CONFIG_TMPFS=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_HEADERS_INSTALL=n" >> ./common/arch/arm64/configs/gki_defconfig
 
-          #Remove check_defconfig
+          # Remove check_defconfig
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
 
       - name: 🔧 Set Kernel name (设置内核名称)
@@ -416,11 +426,11 @@ jobs:
             fi
           else
             echo "未启用风驰，则需应用OGKI转换GKI补丁"
-              sed -i '1iobj-y += hmbird_patch.o' drivers/Makefile
-               cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/hmbird_patch.patch" ./hmbird_patch.patch
-              echo "正在打OGKI转换GKI补丁"
-              patch -p1 -F 3 < hmbird_patch.patch
-              echo "OGKI转换GKI_patch完成"
+            sed -i '1iobj-y += hmbird_patch.o' drivers/Makefile
+            cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/hmbird_patch.patch" ./hmbird_patch.patch
+            echo "正在打OGKI转换GKI补丁"
+            patch -p1 -F 3 < hmbird_patch.patch
+            echo "OGKI转换GKI_patch完成"
           fi
 
       - name: 🔨 Build Kernel (构建内核)
