@@ -420,7 +420,7 @@ jobs:
           else
             echo "未启用风驰，则需应用OGKI转换GKI补丁"
               sed -i '1iobj-y += hmbird_patch.o' drivers/Makefile
-               cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/hmbird_patch.patch" ./hmbird_patch.patch
+              cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/hmbird_patch.patch" ./hmbird_patch.patch
               echo "正在打OGKI转换GKI补丁"
               patch -p1 -F 3 < hmbird_patch.patch
               echo "OGKI转换GKI_patch完成"
