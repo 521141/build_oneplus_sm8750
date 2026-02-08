@@ -275,6 +275,7 @@ jobs:
             KSU_VERSION=$(expr $(git rev-list --count main) + 30700 2>/dev/null || echo 114514)
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
+            cp -rf "${GITHUB_WORKSPACE}/.github/workflows/sign/ReSukiSU/manager_sign.h" ./kernel/manager_sign.h
           else
             curl -LSs "https://raw.githubusercontent.com/${{ env.KSU_TYPE }}/${{ env.KSU_TYPE }}/refs/heads/main/kernel/setup.sh" | bash -s builtin
             cd ./KernelSU
@@ -303,6 +304,7 @@ jobs:
             KSU_VERSION=$(expr $(git rev-list --count main) + 37185 2>/dev/null || echo 114514)
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
+            cp -rf "${GITHUB_WORKSPACE}/.github/workflows/sign/SukiSU/manager_sign.h" ./kernel/manager_sign.h
             grep -A10 "REPO_OWNER" kernel/Kbuild
             grep "KSU_VERSION_FULL" kernel/Kbuild
             echo "SukiSU版本号: v${KSU_API_VERSION}-${GIT_COMMIT_HASH}"
@@ -487,14 +489,14 @@ jobs:
           ccache -s
 
       # 应用Linux补丁
-      # - name: Apply Linux Patch
-      #   run: |
-      #     cd kernel_workspace/common/out/arch/arm64/boot
-      #     curl -LO https://github.com/521141/SukiSU_KernelPatch_patch/releases/download/0.13.0/patch_linux
-      #     chmod +x patch_linux
-      #     ./patch_linux
-      #     rm -f Image
-      #     mv oImage Image
+      - name: Apply Linux Patch
+        run: |
+          cd kernel_workspace/common/out/arch/arm64/boot
+          curl -LO https://github.com/521141/SukiSU_KernelPatch_patch/releases/download/0.13.0/patch_linux
+          chmod +x patch_linux
+          ./patch_linux
+          rm -f Image
+          mv oImage Image
 
       # 创建AnyKernel3刷机包
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
