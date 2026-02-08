@@ -276,6 +276,11 @@ jobs:
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
             cp -rf "${GITHUB_WORKSPACE}/.github/workflows/sign/ReSukiSU/manager_sign.h" ./kernel/manager_sign.h
+            # 提取 size 值
+            awk '/#define EXPECTED_SIZE_RESUKISU/ {print $3}' ./kernel/manager_sign.h
+            # 提取 hash 值（自动处理跨行和引号）
+            awk '/#define EXPECTED_HASH_RESUKISU/ {getline; gsub(/"/, ""); print $1}' ./kernel/manager_sign.h
+
           else
             curl -LSs "https://raw.githubusercontent.com/${{ env.KSU_TYPE }}/${{ env.KSU_TYPE }}/refs/heads/main/kernel/setup.sh" | bash -s builtin
             cd ./KernelSU
@@ -308,6 +313,10 @@ jobs:
             grep -A10 "REPO_OWNER" kernel/Kbuild
             grep "KSU_VERSION_FULL" kernel/Kbuild
             echo "SukiSU版本号: v${KSU_API_VERSION}-${GIT_COMMIT_HASH}"
+            # 提取 size 值
+            awk '/#define EXPECTED_SIZE_SHIRKNEKO/ {print $3}' ./kernel/manager_sign.h
+            # 提取 hash 值（自动处理跨行和引号）
+            awk '/#define EXPECTED_HASH_SHIRKNEKO/ {getline; gsub(/"/, ""); print $1}' ./kernel/manager_sign.h
           fi
 
       - name: 🔧 Set up SUSFS (配置 SUSFS)
