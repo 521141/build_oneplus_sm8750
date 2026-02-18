@@ -87,96 +87,10 @@ on:
 # 工作流任务定义
 jobs:
   build:
-    name: Build_${{ github.event.inputs.device_name }}_${{ github.event.inputs.ksu_type }}
     runs-on: ubuntu-latest
-    env:
-      KSU_TYPE:           ${{ github.event.inputs.ksu_type }}
-      DEVICES_NAME:           ${{ github.event.inputs.device_name }}
-      KEEP_ORIGINAL_SETTINGS: ${{ github.event.inputs.keep_original_settings }}
-      CUSTOM_KERNEL_SUFFIX:   ${{ github.event.inputs.custom_kernel_suffix }}
-      CUSTOM_KERNEL_TIME:     ${{ github.event.inputs.custom_kernel_time }}
-      ENABLE_SCX:       ${{ github.event.inputs.enable_scx }}
-      ENABLE_BBG:       ${{ github.event.inputs.enable_bbg }}
-
+    outputs:
+      ksuver: ${{ steps.ksu_version.outputs.ksuver }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
-        run: |
-          case "${{ env.DEVICES_NAME }}" in
-            oneplus_ace5_pro)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_ace5_pro" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace5_pro_b" >> $GITHUB_ENV
-              ;;
-            oneplus_13)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_13" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
-              ;;
-            oneplus_ace_6)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_ace_6" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace_6" >> $GITHUB_ENV
-              ;;
-            oneplus_13t)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_13t" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13t_b" >> $GITHUB_ENV
-              ;;
-            oneplus_pad_2_pro)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_pad_2_pro" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_pad_2_pro_b" >> $GITHUB_ENV
-              ;;
-            oneplus_ace5_ultra)
-              echo "REPO_MANIFEST=mt6991_b_16.0.0_oneplus_ace5_ultra" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace5_ultra_b" >> $GITHUB_ENV
-              ;;
-            realme_GT7)
-              echo "REPO_MANIFEST=mt6991_b_16.0.0_oneplus_ace5_ultra" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace5_ultra_b" >> $GITHUB_ENV
-              ;;
-            realme_GT7pro)
-              echo "SCHED_FILE=none" >> $GITHUB_ENV
-              ;;
-            realme_GT7pro_Speed)
-              echo "SCHED_FILE=none" >> $GITHUB_ENV
-              ;;
-            realme_GT8)
-              echo "SCHED_FILE=none" >> $GITHUB_ENV
-          esac
-          if [ "${{ env.KEEP_ORIGINAL_SETTINGS }}" = "true" ] && [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
-            case "${{ env.DEVICES_NAME }}" in
-             oneplus_pad_2_pro)
-              echo 'DEFAULT_SUFFIX=-android15-8-g5a0ffb447c1d-ab13771415-4k' >> $GITHUB_ENV
-              ;;
-            oneplus_ace5_ultra | realme_GT7)
-              echo 'DEFAULT_SUFFIX=-android15-8-g29d86c5fc9dd-abogki428889875-4k' >> $GITHUB_ENV
-              ;;
-            oneplus_13 | oneplus_ace5_pro | oneplus_ace_6 | oneplus_13t | realme_GT7pro | realme_GT7pro_Speed | realme_GT8)
-              echo 'DEFAULT_SUFFIX=-android15-8-gf4dc45704e54-abogki446052083-4k' >> $GITHUB_ENV
-              ;;
-          esac
-            echo "使用原官核名称：${{ env.DEFAULT_SUFFIX }}"
-          else
-            echo "使用自定义名称: ${{ github.event.inputs.custom_kernel_suffix }}"
-            echo "DEFAULT_SUFFIX=${{ github.event.inputs.custom_kernel_suffix }}" >> $GITHUB_ENV
-          fi
-          if [ "${{ env.KEEP_ORIGINAL_SETTINGS }}" = "true" ] && [ -z "${{ github.event.inputs.custom_kernel_time }}" ]; then
-            case "${{ env.DEVICES_NAME }}" in
-              oneplus_pad_2_pro)
-                echo 'KERNEL_TIME=Fri Jul 11 22:46:09 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_ace5_ultra | realme_GT7)
-                echo 'KERNEL_TIME=Tue Jul  1 19:48:18 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_13 | oneplus_ace5_pro | oneplus_ace_6 | oneplus_13t | realme_GT7pro | realme_GT7pro_Speed | realme_GT8)
-                echo 'KERNEL_TIME=Fri Sep 19 06:13:40 UTC 2025' >> $GITHUB_ENV
-                ;;
-            esac
-            echo "使用官核时间: ${{ env.KERNEL_TIME }}"
-          else
-            echo "使用自定义构建时间: ${{ github.event.inputs.custom_kernel_time }}"
-            echo "KERNEL_TIME=${{ github.event.inputs.custom_kernel_time }}" >> $GITHUB_ENV
-          fi
-
       - name: 安装环境依赖+初始化源码仓库及llvm-Clang18工具链
         run: |
           rm -rf kernel_workspace
