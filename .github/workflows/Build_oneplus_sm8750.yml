@@ -254,6 +254,7 @@ jobs:
             # 存储版本号到 GitHub 环境变量
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
+            pwd
             cp -rf "${GITHUB_WORKSPACE}/.github/workflows/sign/ReSukiSU/manager_sign.h" ./kernel/manager_sign.h
             awk '/#define EXPECTED_SIZE_RESUKISU/ {print $3}' ./kernel/manager_sign.h
             awk '/#define EXPECTED_HASH_RESUKISU/ {getline; gsub(/"/, ""); print $1}' ./kernel/manager_sign.h
