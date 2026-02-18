@@ -235,9 +235,9 @@ jobs:
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
 
-            curl -o /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h https://github.com/521141/kernelsu-manager-sign/raw/refs/heads/main/sign/SukiSU/manager_sign.h
-            awk '/#define EXPECTED_SIZE_SHIRKNEKO/ {print $3}' ./kernel/manager_sign.h
-            awk '/#define EXPECTED_HASH_SHIRKNEKO/ {getline; gsub(/"/, ""); print $1}' ./kernel/manager_sign.h
+            curl -o /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h https://raw.githubusercontent.com/521141/kernelsu-manager-sign/refs/heads/main/sign/SukiSU/manager_sign.h
+            awk '/#define EXPECTED_SIZE_SHIRKNEKO/ {print $3}' /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h
+            awk '/#define EXPECTED_HASH_SHIRKNEKO/ {getline; gsub(/"/, ""); print $1}' /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h
 
             # 验证修改结果
             grep -A10 "REPO_OWNER" kernel/Kbuild  # 检查插入点后的内容
@@ -254,9 +254,9 @@ jobs:
             # 存储版本号到 GitHub 环境变量
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
-            curl -o /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h https://github.com/521141/kernelsu-manager-sign/raw/refs/heads/main/sign/ReSukiSU/manager_sign.h
-            awk '/#define EXPECTED_SIZE_RESUKISU/ {print $3}' ./kernel/manager_sign.h
-            awk '/#define EXPECTED_HASH_RESUKISU/ {getline; gsub(/"/, ""); print $1}' ./kernel/manager_sign.h
+            curl -o /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h https://raw.githubusercontent.com/521141/kernelsu-manager-sign/refs/heads/main/sign/ReSukiSU/manager_sign.h
+            awk '/#define EXPECTED_SIZE_RESUKISU/ {print $3}' /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h
+            awk '/#define EXPECTED_HASH_RESUKISU/ {getline; gsub(/"/, ""); print $1}' /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h
 
           elif [[ ${{ github.event.inputs.ksu_type }} == "ksunext" ]]; then
             echo "正在配置KernelSU Next..."
