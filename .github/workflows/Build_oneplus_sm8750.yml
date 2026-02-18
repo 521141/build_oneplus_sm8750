@@ -235,7 +235,7 @@ jobs:
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
 
-            cp -rf "${GITHUB_WORKSPACE}/.github/workflows/sign/SukiSU/manager_sign.h" ./kernel/manager_sign.h
+            curl -o /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h https://github.com/521141/kernelsu-manager-sign/raw/refs/heads/main/sign/SukiSU/manager_sign.h
             awk '/#define EXPECTED_SIZE_SHIRKNEKO/ {print $3}' ./kernel/manager_sign.h
             awk '/#define EXPECTED_HASH_SHIRKNEKO/ {getline; gsub(/"/, ""); print $1}' ./kernel/manager_sign.h
 
@@ -254,8 +254,7 @@ jobs:
             # 存储版本号到 GitHub 环境变量
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
             echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
-            ls /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace
-            cp -rf "${GITHUB_WORKSPACE}/.github/workflows/sign/ReSukiSU/manager_sign.h" ./kernel/manager_sign.h
+            curl -o /home/runner/work/build_oneplus_sm8750/build_oneplus_sm8750/kernel_workspace/KernelSU/kernel/manager_sign.h https://github.com/521141/kernelsu-manager-sign/raw/refs/heads/main/sign/ReSukiSU/manager_sign.h
             awk '/#define EXPECTED_SIZE_RESUKISU/ {print $3}' ./kernel/manager_sign.h
             awk '/#define EXPECTED_HASH_RESUKISU/ {getline; gsub(/"/, ""); print $1}' ./kernel/manager_sign.h
 
