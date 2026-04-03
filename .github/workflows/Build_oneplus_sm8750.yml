@@ -701,7 +701,7 @@ jobs:
 
       - name: 应用KPM并修补内核
         run: |
-          if [[ ${{ github.event.inputs.kpm_enable }} == 'builtin'; then
+          if [[ ${{ github.event.inputs.kpm_enable }} == 'builtin' ]]; then
             echo "正在应用KPM并修补内核..."
             cd kernel_workspace/common/out/arch/arm64/boot
             curl -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/latest/download/patch_linux
