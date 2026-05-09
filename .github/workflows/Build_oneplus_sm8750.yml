@@ -711,20 +711,31 @@ jobs:
             let targetAsset = null;
             let versionNumber = '';
             let isExactMatch = false;
+<<<<<<< HEAD
 
+=======
+>>>>>>> ef41643613392e97afd23f7a82802e01c9c9e329
             for (const asset of release.data.assets || []) {
               const match = asset.name.match(pattern66);
               if (match) {
                 targetAsset = asset;
                 versionNumber = match[1];
                 isExactMatch = true;
+<<<<<<< HEAD
                 core.info(`找到精确匹配 6.6: ${asset.name}`);
+=======
+                core.info(`找到精确匹配 6.1: ${asset.name}`);
+>>>>>>> ef41643613392e97afd23f7a82802e01c9c9e329
                 break;
               }
             }
 
             if (!targetAsset) {
+<<<<<<< HEAD
               core.info('未找到6.6版本，查找任意Re-Kernel模块...');
+=======
+              core.info('未找到6.1版本，查找任意Re-Kernel模块...');
+>>>>>>> ef41643613392e97afd23f7a82802e01c9c9e329
               for (const asset of release.data.assets || []) {
                 const match = asset.name.match(patternAny);
                 if (match) {
