@@ -10,49 +10,49 @@ on:
         required: true
         type: choice
         options:
-          - "ReSukiSU"
-          - "SukiSU-Ultra"
-        default: "ReSukiSU"
-
+          - 'ReSukiSU'
+          - 'SukiSU-Ultra'
+        default: 'ReSukiSU'
+        
       device_name:
         description: "📝请选择要编译的机型："
         required: true
         type: choice
         options:
-          - "oneplus_13"
-          - "oneplus_ace5_pro"
-          - "oneplus_ace_6"
-          - "oneplus_13t"
-          - "oneplus_pad_2_pro"
-          - "oneplus_ace5_ultra"
-          - "realme_GT7"
-          - "realme_GT7pro"
-          - "realme_GT7pro_Speed"
-          - "realme_GT8"
-        default: "oneplus_ace5_pro"
+          - 'oneplus_13'
+          - 'oneplus_ace5_pro'
+          - 'oneplus_ace_6'
+          - 'oneplus_13t'
+          - 'oneplus_pad_2_pro'
+          - 'oneplus_ace5_ultra'
+          - 'realme_GT7'
+          - 'realme_GT7pro'
+          - 'realme_GT7pro_Speed'
+          - 'realme_GT8'
+        default: 'oneplus_ace5_pro'
 
       custom_kernel_suffix:
         description: "✏️ 自定义内核名称- (-开头 留空则默认官方）"
         required: false
-        default: ""
-
+        default: ''
+      
       custom_kernel_time:
         description: "⏰ 自定义构建时间- (英文时间字符串格式 留空则默认官方）"
         required: false
-        default: ""
+        default: ''
 
       enable_susfs:
         description: "启用SUSFS"
         required: true
         default: true
         type: boolean
-
+      
       enable_droidspaces:
         description: "添加 Droidspaces 容器支持"
         required: true
         default: true
         type: boolean
-
+        
       enable_ReKernel:
         description: "添加Re-Kernel支持"
         required: true
@@ -64,7 +64,7 @@ on:
         required: true
         default: true
         type: boolean
-
+      
       enable_scx:
         description: "添加完美风驰"
         required: true
@@ -76,6 +76,8 @@ on:
         required: true
         default: true
         type: boolean
+      
+
 
 jobs:
   build:
@@ -83,16 +85,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      KSU_TYPE: ${{ github.event.inputs.ksu_type }}
-      DEVICES_NAME: ${{ github.event.inputs.device_name }}
-      CUSTOM_KERNEL_SUFFIX: ${{ github.event.inputs.custom_kernel_suffix }}
-      CUSTOM_KERNEL_TIME: ${{ github.event.inputs.custom_kernel_time }}
-      ENABLE_SUSFS: ${{ github.event.inputs.enable_susfs }}
-      ENABLE_DROIDSPACES: ${{ github.event.inputs.enable_droidspaces }}
-      ENABLE_REKERNEL: ${{ github.event.inputs.enable_ReKernel }}
-      ENABLE_ADIOS: ${{ github.event.inputs.enable_Adios }}
-      ENABLE_SCX: ${{ github.event.inputs.enable_scx }}
-      ENABLE_BBG: ${{ github.event.inputs.enable_bbg }}
+      KSU_TYPE:               ${{ github.event.inputs.ksu_type }}
+      DEVICES_NAME:           ${{ github.event.inputs.device_name }}
+      CUSTOM_KERNEL_SUFFIX:   ${{ github.event.inputs.custom_kernel_suffix }}
+      CUSTOM_KERNEL_TIME:     ${{ github.event.inputs.custom_kernel_time }}
+      ENABLE_SUSFS:           ${{ github.event.inputs.enable_susfs }}
+      ENABLE_DROIDSPACES:     ${{ github.event.inputs.enable_droidspaces }}
+      ENABLE_REKERNEL:        ${{ github.event.inputs.enable_ReKernel }}
+      ENABLE_ADIOS:           ${{ github.event.inputs.enable_Adios }}
+      ENABLE_SCX:             ${{ github.event.inputs.enable_scx }}
+      ENABLE_BBG:             ${{ github.event.inputs.enable_bbg }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -193,7 +195,7 @@ jobs:
           rm -rf kernel_workspace
           mkdir kernel_workspace
           cd kernel_workspace
-
+          
           sudo apt-mark hold firefox &&
           sudo apt-mark hold libc-bin &&
           sudo apt purge man-db &&
@@ -263,19 +265,19 @@ jobs:
           export CCACHE_NOHARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
           export CCACHE_MAXSIZE="${{ env.CCACHE_MAXSIZE }}"
-
+          
           # 确保ccache目录存在
           mkdir -p "$CCACHE_DIR"
-
+          
           # 每次运行都重新配置缓存大小
           echo "配置ccache缓存大小为: $CCACHE_MAXSIZE"
           ccache -M "$CCACHE_MAXSIZE"
           ccache -o compression=true
-
+          
           # 显示初始缓存状态
           echo "ccache初始状态:"
           ccache -s
-
+          
           # 如果缓存恢复命中，显示详细信息
           if [ -n "${{ steps.ccache-restore.outputs.cache-matched-key }}" ]; then
             echo "ccache缓存命中详情: ${{ steps.ccache-restore.outputs.cache-matched-key }}"
@@ -286,7 +288,7 @@ jobs:
           else
             echo "未命中仓库缓存，也未找到公共缓存，将从空缓存开始构建"
           fi
-
+      
       - name: 🔧 Apply Sched Patch (应用完美风驰补丁)
         run: |
           if [ "$SCHED_FILE" = "none" ]; then
@@ -376,7 +378,7 @@ jobs:
             echo "✓ 已启用 ADIOS I/O 调度器支持"
           fi
           echo "✓ ADIOS I/O 调度器支持配置完成"
-
+          
       - name: 🔧 apply lz4 1.10.0 & zstd 1.5.7 patches (添加lz4 1.10.0 & zstd 1.5.7补丁)
         run: |
           echo "正在添加lz4 1.10.0 & zstd 1.5.7补丁…"
@@ -388,7 +390,7 @@ jobs:
           cd ./common
           git apply -p1 < 001-lz4.patch || true
           patch -p1 < 002-zstd.patch || true
-
+          
       - name: 🔧 Set Baseband-guard (开启BBG基带守护)
         if: ${{ env.ENABLE_BBG == 'true' }}
         run: |
@@ -398,6 +400,7 @@ jobs:
           echo "CONFIG_BBG=y" >> ./common/arch/arm64/configs/gki_defconfig
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' ./common/security/Kconfig
 
+          
       - name: ⚙️ Set ${{ env.KSU_TYPE }} (设置${{ env.KSU_TYPE }})
         run: |
           cd kernel_workspace
@@ -441,6 +444,7 @@ jobs:
             echo "SukiSU版本号: v${KSU_API_VERSION}-${GIT_COMMIT_HASH}"
           fi
 
+            
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         if: ${{ env.ENABLE_SUSFS == 'true' }}
         run: |
@@ -462,12 +466,12 @@ jobs:
           echo "==> 开始添加 Droidspaces 支持"
           patch_file="Droidspaces_6.6.patch"
           patch_path="${GITHUB_WORKSPACE}/patch/${patch_file}"
-
+          
           if [ ! -f "$patch_path" ]; then
             echo "::error::Patch 不存在: $patch_path"
             exit 1
           fi
-
+          
           echo "==> 正在应用: $patch_file"
           if patch -p1 --forward < "$patch_path"; then
             echo "==> Patch 应用成功: $patch_file"
@@ -477,16 +481,17 @@ jobs:
           fi
           echo "==> Droidspaces patch 添加完成"
 
-      - name: 🔧 Set gki_defconfig (设置编译配置)
+          
+      - name: 🔧 Set gki_defconfig (设置编译配置) 
         run: |
           cd kernel_workspace
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
-
+          
           if [ "${{ env.KSU_TYPE }}" == 'ReSukiSU' ]; then
             echo 'CONFIG_KSU_FULL_NAME_FORMAT="%TAG_NAME%-%COMMIT_SHA%-Re"' >> ./common/arch/arm64/configs/gki_defconfig
           fi
-
+          
           if [ "${{ env.ENABLE_SUSFS }}" == 'true' ];then
             echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -523,12 +528,12 @@ jobs:
             echo "CONFIG_IP_SET_HASH_NET=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_NETFILTER_XT_SET=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
-
+          
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> ./common/arch/arm64/configs/gki_defconfig
 
           echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" >> ./common/arch/arm64/configs/gki_defconfig
-
+          
           #Remove check_defconfig
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
 
@@ -539,9 +544,11 @@ jobs:
           ESCAPED_SUFFIX=$(printf '%s\n' "$DEFAULT_SUFFIX" | sed 's:[\/&]:\\&:g')
           sudo sed -i "s/-4k/$ESCAPED_SUFFIX/g" ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/${scm_version}//' ./common/scripts/setlocalversion
-
+          
       - name: 📥 Start build timer (构建计时开始)
-        run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+        run: 
+          echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+
 
       - name: 🔨 Build Kernel (构建内核)
         run: |
@@ -603,7 +610,7 @@ jobs:
           LD_PRELOAD=$PRELOAD_LIBS stat ./Makefile
           echo "ccache状态："
           ccache -s
-
+      
       - name: 🕒 Calculate build time (计算构建时间)
         run: |
           END=$(date +%s)
@@ -673,12 +680,12 @@ jobs:
           chmod +x main.sh
           ./main.sh "make_anykernel3"
           rm -rf ./main.sh
-
+          
       - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
         uses: actions/upload-artifact@v5
         with:
-          name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_${{ env.KSU_TYPE }}
-          path: ./AnyKernel3/*
+         name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_${{ env.KSU_TYPE }}
+         path: ./AnyKernel3/*
 
   upload_rekernel:
     name: Upload Re-Kernel Module
@@ -711,31 +718,20 @@ jobs:
             let targetAsset = null;
             let versionNumber = '';
             let isExactMatch = false;
-<<<<<<< HEAD
 
-=======
->>>>>>> ef41643613392e97afd23f7a82802e01c9c9e329
             for (const asset of release.data.assets || []) {
               const match = asset.name.match(pattern66);
               if (match) {
                 targetAsset = asset;
                 versionNumber = match[1];
                 isExactMatch = true;
-<<<<<<< HEAD
                 core.info(`找到精确匹配 6.6: ${asset.name}`);
-=======
-                core.info(`找到精确匹配 6.1: ${asset.name}`);
->>>>>>> ef41643613392e97afd23f7a82802e01c9c9e329
                 break;
               }
             }
 
             if (!targetAsset) {
-<<<<<<< HEAD
               core.info('未找到6.6版本，查找任意Re-Kernel模块...');
-=======
-              core.info('未找到6.1版本，查找任意Re-Kernel模块...');
->>>>>>> ef41643613392e97afd23f7a82802e01c9c9e329
               for (const asset of release.data.assets || []) {
                 const match = asset.name.match(patternAny);
                 if (match) {
