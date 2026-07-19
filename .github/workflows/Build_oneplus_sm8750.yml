@@ -379,17 +379,17 @@ jobs:
           fi
           echo "✓ ADIOS I/O 调度器支持配置完成"
           
- #     - name: 🔧 apply lz4 1.10.0 & zstd 1.5.7 patches (添加lz4 1.10.0 & zstd 1.5.7补丁)
-#        run: |
-#          echo "正在添加lz4 1.10.0 & zstd 1.5.7补丁…"
-#          cd kernel_workspace
- #         git clone https://github.com/cctv18/oppo_oplus_realme_sm8750.git
-#          cp ./oppo_oplus_realme_sm8750/zram_patch/001-lz4.patch ./common
- #         cp ./oppo_oplus_realme_sm8750/zram_patch/lz4armv8.S ./common/lib
- #         cp ./oppo_oplus_realme_sm8750/zram_patch/002-zstd.patch ./common/
- #         cd ./common
-#          git apply -p1 < 001-lz4.patch || true
-#          patch -p1 < 002-zstd.patch || true
+      - name: 🔧 apply lz4 1.10.0 & zstd 1.5.7 patches (添加lz4 1.10.0 & zstd 1.5.7补丁)
+        run: |
+          echo "正在添加lz4 1.10.0 & zstd 1.5.7补丁…"
+          cd kernel_workspace
+          git clone https://github.com/cctv18/oppo_oplus_realme_sm8750.git
+          cp ./oppo_oplus_realme_sm8750/zram_patch/001-lz4.patch ./common
+          cp ./oppo_oplus_realme_sm8750/zram_patch/lz4armv8.S ./common/lib
+          cp ./oppo_oplus_realme_sm8750/zram_patch/002-zstd.patch ./common/
+          cd ./common
+          git apply -p1 < 001-lz4.patch || true
+          patch -p1 < 002-zstd.patch || true
           
       - name: 🔧 Set Baseband-guard (开启BBG基带守护)
         if: ${{ env.ENABLE_BBG == 'true' }}
