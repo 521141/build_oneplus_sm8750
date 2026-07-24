@@ -5,58 +5,44 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      ksu_type:
-        description: "📝请选择要集成的KSU："
+      enable_release:
+        description: "发布到 Releases"
         required: true
-        type: choice
-        options:
-          - 'ReSukiSU'
-          - 'SukiSU-Ultra'
-        default: 'ReSukiSU'
-        
+        default: true
+        type: boolean
+
       device_name:
         description: "📝请选择要编译的机型："
         required: true
         type: choice
         options:
-          - 'oneplus_13'
-          - 'oneplus_ace5_pro'
-          - 'oneplus_ace_6'
-          - 'oneplus_13t'
-          - 'oneplus_pad_2_pro'
-          - 'oneplus_ace5_ultra'
-          - 'realme_GT7'
-          - 'realme_GT7pro'
-          - 'realme_GT7pro_Speed'
-          - 'realme_GT8'
-        default: 'oneplus_ace5_pro'
+          - "oneplus_13"
+          - "oneplus_ace5_pro"
+          - "oneplus_ace_6"
+          - "oneplus_13t"
+          - "oneplus_pad_2"
+          - "oneplus_pad_2_pro"
+          - "oneplus_ace5_ultra"
+          - "realme_GT7"
+          - "realme_GT7pro"
+          - "realme_GT7pro_Speed"
+          - "realme_GT8"
+        default: "oneplus_ace5_pro"
 
       custom_kernel_suffix:
         description: "✏️ 自定义内核名称- (-开头 留空则默认官方）"
         required: false
-        default: ''
-      
+        default: ""
+
       custom_kernel_time:
         description: "⏰ 自定义构建时间- (英文时间字符串格式 留空则默认官方）"
         required: false
-        default: ''
+        default: ""
 
       enable_susfs:
         description: "启用SUSFS"
         required: true
         default: true
-        type: boolean
-      
-      enable_droidspaces:
-        description: "添加 Droidspaces 容器支持"
-        required: true
-        default: true
-        type: boolean
-        
-      enable_ReKernel:
-        description: "添加Re-Kernel支持"
-        required: true
-        default: false
         type: boolean
 
       enable_Adios:
@@ -64,7 +50,7 @@ on:
         required: true
         default: true
         type: boolean
-      
+
       enable_scx:
         description: "添加完美风驰"
         required: true
@@ -76,25 +62,22 @@ on:
         required: true
         default: true
         type: boolean
-      
-
 
 jobs:
   build:
-    name: Build_${{ github.event.inputs.device_name }}_${{ github.event.inputs.ksu_type }}
+    name: Build_${{ github.event.inputs.device_name }}
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      KSU_TYPE:               ${{ github.event.inputs.ksu_type }}
-      DEVICES_NAME:           ${{ github.event.inputs.device_name }}
-      CUSTOM_KERNEL_SUFFIX:   ${{ github.event.inputs.custom_kernel_suffix }}
-      CUSTOM_KERNEL_TIME:     ${{ github.event.inputs.custom_kernel_time }}
-      ENABLE_SUSFS:           ${{ github.event.inputs.enable_susfs }}
-      ENABLE_DROIDSPACES:     ${{ github.event.inputs.enable_droidspaces }}
-      ENABLE_REKERNEL:        ${{ github.event.inputs.enable_ReKernel }}
-      ENABLE_ADIOS:           ${{ github.event.inputs.enable_Adios }}
-      ENABLE_SCX:             ${{ github.event.inputs.enable_scx }}
-      ENABLE_BBG:             ${{ github.event.inputs.enable_bbg }}
+      DEVICES_NAME: ${{ github.event.inputs.device_name }}
+      CUSTOM_KERNEL_SUFFIX: ${{ github.event.inputs.custom_kernel_suffix }}
+      CUSTOM_KERNEL_TIME: ${{ github.event.inputs.custom_kernel_time }}
+      ENABLE_SUSFS: ${{ github.event.inputs.enable_susfs }}
+      ENABLE_ADIOS: ${{ github.event.inputs.enable_Adios }}
+      ENABLE_SCX: ${{ github.event.inputs.enable_scx }}
+      ENABLE_BBG: ${{ github.event.inputs.enable_bbg }}
+    outputs:
+      ksuver: ${{ steps.ksu_step.outputs.ksuver }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -117,6 +100,11 @@ jobs:
             oneplus_13t)
               echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_13t" >> $GITHUB_ENV
               echo "SCHED_FILE=oneplus_13t_b" >> $GITHUB_ENV
+              ;;
+            oneplus_pad_2)
+              echo "REPO_MANIFEST=mt6991_b_16.0.0_pad_2" >> $GITHUB_ENV
+              echo "IMAGENAME=Image_Op_Pad_2" >> $GITHUB_ENV
+              echo "SCHED_FILE=oneplus_pad2_mt6991_b" >> $GITHUB_ENV
               ;;
             oneplus_pad_2_pro)
               echo "REPO_MANIFEST=sm8750_b_16.0.0_pad_2_pro" >> $GITHUB_ENV
@@ -145,12 +133,12 @@ jobs:
           if [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
             case "${{ env.DEVICES_NAME }}" in
              oneplus_pad_2_pro)
-                DEFAULT_SUFFIX='-android15-8-g096cdb6ecefc-ab14358676-4k'
+                DEFAULT_SUFFIX='-android15-8-g2e6b9c3812c5-ab15114928-4k'
               ;;
             oneplus_ace5_ultra)
-                DEFAULT_SUFFIX='-android15-8-ge6068c2aa11d-abogki454747580-4k'
+                DEFAULT_SUFFIX='-android15-8-ge58033dc8ea6-abogki498046332-4k'
               ;;
-            oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | realme_GT7 | realme_GT7pro_Speed | realme_GT8)
+            oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | oneplus_pad_2 | realme_GT7 | realme_GT7pro_Speed | realme_GT8)
                 DEFAULT_SUFFIX='-android15-8-g93e223c276e7-abogki500782043-4k'
               ;;
             realme_GT7pro)
@@ -171,12 +159,12 @@ jobs:
           if [ -z "${{ github.event.inputs.custom_kernel_time }}" ]; then
             case "${{ env.DEVICES_NAME }}" in
               oneplus_pad_2_pro)
-                  KERNEL_TIME='Tue Oct 28 09:04:21 UTC 2025'
+                  KERNEL_TIME='Mon Mar 30 10:41:25 UTC 2026'
                 ;;
               oneplus_ace5_ultra)
-                  KERNEL_TIME='Tue Jul 1 19:48:18 UTC 2025'
+                  KERNEL_TIME='Sun Mar 29 12:31:26 UTC 2026'
                 ;;
-              oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | realme_GT7 | realme_GT7pro_Speed | realme_GT8)
+              oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | oneplus_pad_2 |realme_GT7 | realme_GT7pro_Speed | realme_GT8)
                   KERNEL_TIME='Wed Apr  8 15:08:30 UTC 2026'
                 ;;
               realme_GT7pro)
@@ -195,7 +183,6 @@ jobs:
           rm -rf kernel_workspace
           mkdir kernel_workspace
           cd kernel_workspace
-          
           sudo apt-mark hold firefox &&
           sudo apt-mark hold libc-bin &&
           sudo apt purge man-db &&
@@ -211,7 +198,7 @@ jobs:
             aria2c -s16 -x16 -k1M https://github.com/realme-kernel-opensource/realme_GT8-AndroidB-common-source/archive/refs/heads/master.zip -o common.zip
             unzip -q common.zip && 
             mv "realme_GT8-AndroidB-common-source-master" common
-          elif [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ]; then
+          elif [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ] || [ "${DEVICES_NAME}" = "oneplus_pad_2" ]; then
             aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_oneplus_mt6991/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
             unzip -q common.zip && 
             mv "android_kernel_oneplus_mt6991-oneplus-${REPO_MANIFEST}" common
@@ -221,7 +208,7 @@ jobs:
             mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common
           fi
           rm -rf common.zip 
-          echo "正在克隆llvm-clang18工具链..."
+          echo "正在克隆 llvm-clang18 工具链..."
           mkdir -p clang18 &&
           aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang18-r510928/clang-r510928.zip -o clang.zip &&
           unzip -q clang.zip -d clang18 &&
@@ -231,7 +218,7 @@ jobs:
           unzip -q build-tools.zip &&
           rm -rf build-tools.zip &
           wait
-          echo "所有源码及llvm-Clang18工具链初始化完成！"
+          echo "所有源码及 llvm-Clang18 工具链初始化完成！"
           echo "正在去除 ABI 保护 & 去除 dirty 后缀..."
           rm common/android/abi_gki_protected_exports_* || true
           for f in common/scripts/setlocalversion; do
@@ -239,48 +226,47 @@ jobs:
             sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' "$f"
           done
 
-      - name: 🛠 Set ccache DIR(配置ccache目录)
+      - name: 🛠 Set ccache DIR(配置 ccache 目录)
         run: |
-          echo "CCACHE_DIR=$HOME/.ccache_${{ env.KSU_TYPE }}_${{ env.DEVICES_NAME }}" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache_${{ env.DEVICES_NAME }}" >> $GITHUB_ENV
           echo "CCACHE_MAXSIZE=10G" >> $GITHUB_ENV
+          # 根据影响源码的功能开关生成缓存变体后缀，避免不同变体互相污染
+          CACHE_VARIANT=""
+          echo "CACHE_VARIANT=$CACHE_VARIANT" >> $GITHUB_ENV
+          echo "当前构建内核机型：${{ env.DEVICES_NAME }}，缓存变体：${CACHE_VARIANT:-(无)}"
           echo "当前磁盘空间："
           df -h
-          echo "当前构建内核机型：${{ env.DEVICES_NAME }}"
 
-      - name: 📥 Restore ccache (载入当前机型的ccache缓存)
+      - name: 📥 Restore ccache (载入当前机型的 ccache 缓存)
         id: ccache-restore
         uses: actions/cache/restore@v5
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-ECS-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-latest
+          key: ccache-${{ env.DEVICES_NAME }}${{ env.CACHE_VARIANT }}-latest
           restore-keys: |
-            ccache-ECS-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-
+            ccache-${{ env.DEVICES_NAME }}${{ env.CACHE_VARIANT }}-
+            ccache-${{ env.DEVICES_NAME }}-
 
-      - name: 📥 Init ccache (初始化配置ccache)
+      - name: 📥 Init ccache (初始化配置 ccache)
         run: |
-          # 设置ccache环境变量
           export CCACHE_COMPILERCHECK="none"
           export CCACHE_BASEDIR="${{ github.workspace }}"
           export CCACHE_NOHASHDIR="true"
           export CCACHE_NOHARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
           export CCACHE_MAXSIZE="${{ env.CCACHE_MAXSIZE }}"
-          
-          # 确保ccache目录存在
+
           mkdir -p "$CCACHE_DIR"
-          
-          # 每次运行都重新配置缓存大小
-          echo "配置ccache缓存大小为: $CCACHE_MAXSIZE"
+
+          echo "配置 ccache 缓存大小为：$CCACHE_MAXSIZE"
           ccache -M "$CCACHE_MAXSIZE"
           ccache -o compression=true
-          
-          # 显示初始缓存状态
-          echo "ccache初始状态:"
+
+          echo "ccache 初始状态:"
           ccache -s
-          
-          # 如果缓存恢复命中，显示详细信息
+
           if [ -n "${{ steps.ccache-restore.outputs.cache-matched-key }}" ]; then
-            echo "ccache缓存命中详情: ${{ steps.ccache-restore.outputs.cache-matched-key }}"
+            echo "ccache 缓存命中详情：${{ steps.ccache-restore.outputs.cache-matched-key }}"
             ccache -sv
           elif [ "${PUBLIC_CCACHE_USED:-false}" = 'true' ]; then
             echo "已恢复公共 ccache，当前缓存详情:"
@@ -288,14 +274,14 @@ jobs:
           else
             echo "未命中仓库缓存，也未找到公共缓存，将从空缓存开始构建"
           fi
-      
+
       - name: 🔧 Apply Sched Patch (应用完美风驰补丁)
         run: |
           if [ "$SCHED_FILE" = "none" ]; then
             echo "该机型自带风驰，跳过所有补丁应用"
-          elif [ "${{ env.ENABLE_SCX }}" = "true" ]; then
+          else
             cd kernel_workspace/common
-            if [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ]; then
+            if [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ] || [ "${DEVICES_NAME}" = "oneplus_pad_2" ]; then
               git clone https://github.com/Numbersf/SCHED_PATCH.git -b "mt6991"
             else
               git clone https://github.com/Numbersf/SCHED_PATCH.git -b "sm8750"
@@ -319,32 +305,6 @@ jobs:
             echo "正在打OGKI转换GKI补丁"
             patch -p1 -F 3 < hmbird_patch.patch
             echo "OGKI转换GKI_patch完成"
-          fi
-
-      - name: 🔧 Add Re-Kernel Support (添加Re-Kernel支持)
-        if: ${{ env.ENABLE_REKERNEL == 'true' }}
-        run: |
-          cd kernel_workspace
-          VERSION=$(awk -F'=' '/^VERSION[ \t]*=/ {gsub(/ /,"",$2); print $2}' common/Makefile)
-          PATCHLEVEL=$(awk -F'=' '/^PATCHLEVEL[ \t]*=/ {gsub(/ /,"",$2); print $2}' common/Makefile)
-          echo "内核版本: ${VERSION}.${PATCHLEVEL}"
-          [ ! -d "Re-Kernel" ] && git clone --depth 1 https://github.com/Sakion-Team/Re-Kernel.git
-          RE_DIR="${GITHUB_WORKSPACE}/kernel_workspace/Re-Kernel/LKM-Source"
-          cd common
-          grep -q 'source "drivers/rekernel/Kconfig"' drivers/Kconfig || \
-            sed -i '/endmenu/i source "drivers/rekernel/Kconfig"' drivers/Kconfig
-          grep -q 'obj-$(CONFIG_REKERNEL)' drivers/Makefile || \
-            printf '\n# Re-Kernel\nobj-$(CONFIG_REKERNEL) += rekernel/\n' >> drivers/Makefile
-          mkdir -p drivers/rekernel
-          cp ${RE_DIR}/* drivers/rekernel/
-          TARGET="KERNEL_${VERSION}_${PATCHLEVEL}"
-          if grep -q "$TARGET" drivers/rekernel/rekernel.h; then
-            sed -i "s|^[[:space:]]*//[[:space:]]*#define[[:space:]]\+$TARGET|#define $TARGET|" drivers/rekernel/rekernel.h
-            echo "CONFIG_REKERNEL=m" >> arch/arm64/configs/gki_defconfig
-            echo "CONFIG_REKERNEL_NETWORK=y" >> arch/arm64/configs/gki_defconfig
-            echo "✅ Re-Kernel 配置完成"
-          else
-            echo "⚠️ 不支持的内核版本: $TARGET"
           fi
 
       - name: 🔧 Add adios_ioscheduler (添加 adios_ioscheduler 支持)
@@ -378,7 +338,7 @@ jobs:
             echo "✓ 已启用 ADIOS I/O 调度器支持"
           fi
           echo "✓ ADIOS I/O 调度器支持配置完成"
-          
+
       - name: 🔧 apply lz4 1.10.0 & zstd 1.5.7 patches (添加lz4 1.10.0 & zstd 1.5.7补丁)
         run: |
           echo "正在添加lz4 1.10.0 & zstd 1.5.7补丁…"
@@ -390,63 +350,29 @@ jobs:
           cd ./common
           git apply -p1 < 001-lz4.patch || true
           patch -p1 < 002-zstd.patch || true
-          
-      - name: 🔧 Set Baseband-guard (开启BBG基带守护)
+
+      - name: 🔧 Set Baseband-guard (开启 BBG 基带守护)
         if: ${{ env.ENABLE_BBG == 'true' }}
         run: |
-          echo "正在启用启用内核级基带保护支持…"
-          cd kernel_workspace
-          wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash
-          echo "CONFIG_BBG=y" >> ./common/arch/arm64/configs/gki_defconfig
-          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' ./common/security/Kconfig
+          cd kernel_workspace/common
+          echo "正在启用 BBG 基带守护…"
+          curl -LSs https://raw.githubusercontent.com/vc-teahouse/Baseband-guard/main/setup.sh | bash
+          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' ./security/Kconfig
 
-          
-      - name: ⚙️ Set ${{ env.KSU_TYPE }} (设置${{ env.KSU_TYPE }})
+      - name: ⚙️ Set ReSukiSU (设置ReSukiSU)
+        if: ${{ env.ENABLE_KSU == 'true' }}
+        id: ksu_step
         run: |
           cd kernel_workspace
-          echo "正在配置${{ env.KSU_TYPE }}..."
-          if [ "${{ env.KSU_TYPE }}" == 'ReSukiSU' ]; then
-            curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/refs/heads/main/kernel/setup.sh" | bash -s main
-            cd ./KernelSU 
-            KSU_VERSION=$(expr $(git rev-list --count main) + 30700 2>/dev/null || echo 114514)
-            echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-            echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
-          else
-            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/refs/heads/main/kernel/setup.sh" | bash -s builtin
-            cd ./KernelSU
-            GIT_COMMIT_HASH=$(git rev-parse --short=8 HEAD)
-            echo "当前提交哈希: $GIT_COMMIT_HASH"
-            export KSU_VERSION=$KSU_VERSION
-            for i in {1..3}; do
-              KSU_API_VERSION=$(curl -s "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/builtin/kernel/Makefile" | 
-                grep -m1 "KSU_VERSION_API :=" | 
-                awk -F'= ' '{print $2}' | 
-                tr -d '[:space:]')
-              [ -n "$KSU_API_VERSION" ] && break || sleep 1
-            done
-            [ -z "$KSU_API_VERSION" ] && KSU_API_VERSION="4.1.0"
-            echo "KSU_API_VERSION=$KSU_API_VERSION" >> $GITHUB_ENV
-            VERSION_DEFINITIONS=$'define get_ksu_version_full\nv\\$1-'"$GIT_COMMIT_HASH"$'\nendef\n\nKSU_VERSION_API := '"$KSU_API_VERSION"$'\nKSU_VERSION_FULL := v'"$KSU_API_VERSION"$'-'"$GIT_COMMIT_HASH"$''
-            
-            sed -i '/define get_ksu_version_full/,/endef/d' kernel/Makefile
-            sed -i '/KSU_VERSION_API :=/d' kernel/Makefile
-            sed -i '/KSU_VERSION_FULL :=/d' kernel/Makefile
-            awk -v def="$VERSION_DEFINITIONS" '
-              /REPO_OWNER :=/ {print; print def; inserted=1; next}
-              1
-              END {if (!inserted) print def}
-            ' kernel/Makefile > kernel/Makefile.tmp && mv kernel/Makefile.tmp kernel/Makefile
-            KSU_VERSION=$(expr $(git rev-list --count main) + 37185 2>/dev/null || echo 114514)
-            echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-            echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
-            grep -A10 "REPO_OWNER" kernel/Makefile
-            grep "KSU_VERSION_FULL" kernel/Makefile
-            echo "SukiSU版本号: v${KSU_API_VERSION}-${GIT_COMMIT_HASH}"
-          fi
+          echo "正在配置ReSukiSU..."
+          curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/refs/heads/main/kernel/setup.sh" | bash -s main
+          cd ./KernelSU 
+          KSU_VERSION=$(expr $(git rev-list --count main) + 30700 2>/dev/null || echo 114514)
+          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+          echo "ksuver=$KSU_VERSION" >> $GITHUB_OUTPUT
 
-            
       - name: 🔧 Set up SUSFS (配置 SUSFS)
-        if: ${{ env.ENABLE_SUSFS == 'true' }}
+        if: ${{ env.ENABLE_SUSFS == 'true' && env.ENABLE_KSU == 'true' }}
         run: |
           cd kernel_workspace
           git clone --depth=1 https://github.com/cctv18/susfs4oki.git susfs4ksu -b oki-android15-6.6
@@ -459,96 +385,55 @@ jobs:
           patch -p1 -N -F 3 < 69_hide_stuff.patch || true
           echo "[OK] SUSFS 补丁处理流程全部完成"
 
-      - name: 🔧 Add Droidspaces Support (添加 Droidspaces 支持)
-        if: ${{ env.ENABLE_DROIDSPACES == 'true' }}
-        working-directory: kernel_workspace/common
-        run: |
-          echo "==> 开始添加 Droidspaces 支持"
-          patch_file="Droidspaces_6.6.patch"
-          patch_path="${GITHUB_WORKSPACE}/patch/${patch_file}"
-          
-          if [ ! -f "$patch_path" ]; then
-            echo "::error::Patch 不存在: $patch_path"
-            exit 1
-          fi
-          
-          echo "==> 正在应用: $patch_file"
-          if patch -p1 --forward < "$patch_path"; then
-            echo "==> Patch 应用成功: $patch_file"
-          else
-            echo "::error::Patch 应用失败: $patch_file"
-            exit 1
-          fi
-          echo "==> Droidspaces patch 添加完成"
-
-          
-      - name: 🔧 Set gki_defconfig (设置编译配置) 
+      - name: 🔧 Set gki_defconfig (设置编译配置)
         run: |
           cd kernel_workspace
-          echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          if [ "${{ env.KSU_TYPE }}" == 'ReSukiSU' ]; then
-            echo 'CONFIG_KSU_FULL_NAME_FORMAT="%TAG_NAME%-%COMMIT_SHA%-Re"' >> ./common/arch/arm64/configs/gki_defconfig
-          fi
-          
-          if [ "${{ env.ENABLE_SUSFS }}" == 'true' ];then
-            echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_SUSFS_SUS_MAP=y" >> ./common/arch/arm64/configs/gki_defconfig
-          else
-            echo "未启用SUSFS 跳过SUSFS配置"
-          fi
 
-          if [ "${{ env.ENABLE_DROIDSPACES }}" == 'true' ];then
-            echo "应用Droidspaces推荐配置"
-            echo "CONFIG_SYSVIPC=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_POSIX_MQUEUE=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_IPC_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_PID_NS=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_DEVTMPFS=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_NETFILTER_XT_TARGET_REJECT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_NETFILTER_XT_TARGET_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_NETFILTER_XT_MATCH_RECENT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_IP_SET=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_IP_SET_HASH_IP=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_IP_SET_HASH_NET=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_NETFILTER_XT_SET=y" >> ./common/arch/arm64/configs/gki_defconfig
+          if [ "${{ env.ENABLE_KSU }}" = "true" ]; then
+            echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo 'CONFIG_KSU_FULL_NAME_FORMAT="%TAG_NAME%-%COMMIT_SHA%"' >> ./common/arch/arm64/configs/gki_defconfig
+            
+            if [ "${{ env.ENABLE_SUSFS }}" == 'true' ];then
+              echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
+              echo "CONFIG_KSU_SUSFS_SUS_MAP=y" >> ./common/arch/arm64/configs/gki_defconfig
+            else
+              echo "未启用SUSFS 跳过SUSFS配置"
+            fi
+          else
+            echo "未启用KSU，将不会集成Root及SUSFS"
           fi
-          
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> ./common/arch/arm64/configs/gki_defconfig
 
           echo "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
+
           #Remove check_defconfig
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
 
       - name: 🔧 Set Kernel name (设置内核名称)
         run: |
           cd kernel_workspace
-          echo "内核后缀: $DEFAULT_SUFFIX"
+          echo "内核后缀：$DEFAULT_SUFFIX"
           ESCAPED_SUFFIX=$(printf '%s\n' "$DEFAULT_SUFFIX" | sed 's:[\/&]:\\&:g')
           sudo sed -i "s/-4k/$ESCAPED_SUFFIX/g" ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/${scm_version}//' ./common/scripts/setlocalversion
-          
-      - name: 📥 Start build timer (构建计时开始)
-        run: 
-          echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
 
+      - name: 📥 Start build timer (构建计时开始)
+        run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
 
       - name: 🔨 Build Kernel (构建内核)
         run: |
@@ -559,14 +444,14 @@ jobs:
           CLANG_DIR="$WORKDIR/kernel_workspace/clang18/bin"
           CLANG_VERSION="$($CLANG_DIR/clang --version | head -n 1)"
           LLD_VERSION="$($CLANG_DIR/ld.lld --version | head -n 1)"
-          pahole_version=$(pahole --version 2>/dev/null | head -n1); [ -z "$pahole_version" ] && echo "pahole版本：未安装" || echo "pahole版本：$pahole_version"
+          pahole_version=$(pahole --version 2>/dev/null | head -n1); [ -z "$pahole_version" ] && echo "pahole 版本：未安装" || echo "pahole 版本：$pahole_version"
           export CCACHE_LOGFILE="${{ github.workspace }}/kernel_workspace/ccache.log"
           export CCACHE_COMPILERCHECK="none"
           export CCACHE_BASEDIR="${{ github.workspace }}"
           export CCACHE_NOHASHDIR="true"
           export CCACHE_NOHARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
-          export CCACHE_MAXSIZE="3G"
+          export CCACHE_MAXSIZE="${{ env.CCACHE_MAXSIZE }}"
           export CCACHE_IS_KERNEL_COMPILING="true"
           echo "sloppiness = file_stat_matches,include_file_ctime,include_file_mtime,pch_defines,file_macro,time_macros" >> "$CCACHE_DIR/ccache.conf"
           cd kernel_workspace/common
@@ -608,9 +493,9 @@ jobs:
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" LD="ld.lld" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error gki_defconfig &&
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="$(pwd)/cc-wrapper" LD="$(pwd)/ld-wrapper" HOSTLD=ld.lld O=out KCFLAGS+=-O2 KCFLAGS+=-Wno-error Image
           LD_PRELOAD=$PRELOAD_LIBS stat ./Makefile
-          echo "ccache状态："
+          echo "ccache 状态："
           ccache -s
-      
+
       - name: 🕒 Calculate build time (计算构建时间)
         run: |
           END=$(date +%s)
@@ -623,14 +508,14 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-ECS-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-${{ github.run_id }}
+          key: ccache-${{ env.DEVICES_NAME }}${{ env.CACHE_VARIANT }}-${{ github.run_id }}
 
       - name: 🧹 Clean old ccache (清理旧缓存)
         if: env.BUILD_TIME > 480
         uses: actions/github-script@v8
         env:
-          PREFIX: ccache-ECS-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-
-          CURRENT_KEY: ccache-ECS-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-${{ github.run_id }}
+          PREFIX: ccache-${{ env.DEVICES_NAME }}${{ env.CACHE_VARIANT }}-
+          CURRENT_KEY: ccache-${{ env.DEVICES_NAME }}${{ env.CACHE_VARIANT }}-${{ github.run_id }}
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -639,8 +524,8 @@ jobs:
             let page = 1;
             let deleted = 0;
 
-            core.info('构建时间超过8分钟，已保存ccache缓存');
-            core.info(`正在清理旧缓存，匹配前缀: ${prefix}`);
+            core.info('构建时间超过 8 分钟，已保存 ccache 缓存');
+            core.info(`正在清理旧缓存，匹配前缀：${prefix}`);
 
             while (true) {
               const response = await github.rest.actions.getActionsCacheList({
@@ -676,106 +561,163 @@ jobs:
 
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
-          cp "${GITHUB_WORKSPACE}/.github/workflows/tools/main.sh" ./
-          chmod +x main.sh
-          ./main.sh "make_anykernel3"
-          rm -rf ./main.sh
-          
+          cp "${GITHUB_WORKSPACE}/.github/workflows/tools/main.bin" ./
+          chmod +x main.bin
+          ./main.bin "make_anykernel3"
+          rm -rf ./main.bin
+
       - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
-         name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_${{ env.KSU_TYPE }}
-         path: ./AnyKernel3/*
+          name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_ReSukiSU
+          path: ./AnyKernel3/*
 
-  upload_rekernel:
-    name: Upload Re-Kernel Module
-    if: ${{ github.event.inputs.enable_ReKernel == 'true' }}
-    needs: build
+  release:
+    name: 📤 Create Release (创建发布)
+    needs: [build]
+    if: ${{ github.event.inputs.enable_release == 'true' && always() && needs.build.result != 'failure' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
     steps:
-      - name: 🔎 Find Re-Kernel module zip (查找Re-Kernel最新模块并下载)
-        id: download-rekernel
-        uses: actions/github-script@v8
-        env:
-          KERNEL_MAJOR: "6.6"
+      - name: 📥 Download all artifacts (下载所有构建产物)
+        uses: actions/download-artifact@v5
         with:
-          script: |
-            const owner = 'Sakion-Team';
-            const repo = 'Re-Kernel';
-            const kernelMajor = process.env.KERNEL_MAJOR;
+          pattern: "*"
+          path: ./release_assets
 
-            core.info(`正在获取 ${owner}/${repo} 的最新 release...`);
+      - name: 📦 Prepare release files (准备发布文件)
+        run: |
+          echo "=== 下载的产物列表 ==="
+          ls -la ./release_assets/
+          echo ""
 
-            const release = await github.rest.repos.getLatestRelease({
-              owner,
-              repo,
-            });
-            core.info(`最新版本: ${release.data.tag_name}`);
-            const escapedKernel = kernelMajor.replace(/\./g, '\\.');
-            const pattern66 = new RegExp(`^Re-Kernel-v([\\d.]+)-${escapedKernel}\\.zip$`);
-            const patternAny = new RegExp(`^Re-Kernel.*\\.zip$`, 'i');
+          # 为每个 AK3 目录创建 zip 包
+          for ak3_dir in ./release_assets/AK3_*/; do
+            if [ -d "$ak3_dir" ]; then
+              name=$(basename "$ak3_dir")
+              echo "打包 AK3: $name"
+              (cd "$ak3_dir" && zip -qr "../${name}.zip" .)
+            fi
+          done
 
-            let targetAsset = null;
-            let versionNumber = '';
-            let isExactMatch = false;
+          # 如果 Re-Kernel 模块存在，打包为 zip
+          for rk_dir in ./release_assets/Re-Kernel-v*/; do
+            if [ -d "$rk_dir" ]; then
+              name=$(basename "$rk_dir")
+              echo "打包 Re-Kernel: $name"
+              (cd "$rk_dir" && zip -qr "../${name}.zip" .)
+            fi
+          done
 
-            for (const asset of release.data.assets || []) {
-              const match = asset.name.match(pattern66);
-              if (match) {
-                targetAsset = asset;
-                versionNumber = match[1];
-                isExactMatch = true;
-                core.info(`找到精确匹配 6.6: ${asset.name}`);
-                break;
-              }
-            }
+          # 列出所有待上传的文件
+          echo ""
+          echo "=== 待上传到 Release 的文件 ==="
+          find ./release_assets -maxdepth 1 -type f | sort
 
-            if (!targetAsset) {
-              core.info('未找到6.6版本，查找任意Re-Kernel模块...');
-              for (const asset of release.data.assets || []) {
-                const match = asset.name.match(patternAny);
-                if (match) {
-                  targetAsset = asset;
-                  versionNumber = asset.name.replace(/Re-Kernel-v|.zip/gi, '').replace(/^-/, '').replace(/-$/, '') || 'latest';
-                  isExactMatch = false;
-                  core.info(`找到Re-Kernel模块: ${asset.name}`);
-                  break;
-                }
-              }
-            }
-
-            if (!targetAsset) {
-              core.setFailed('未找到任何 Re-Kernel 模块资产');
-              return;
-            }
-
-            core.info(`找到目标资产: ${targetAsset.name} (版本: ${versionNumber}, ${(targetAsset.size / 1024).toFixed(1)} KB)`);
-            core.setOutput('asset-name', targetAsset.name);
-            core.setOutput('download-url', targetAsset.browser_download_url);
-            core.setOutput('version-number', versionNumber);
-
-      - name: 📥 Download Re-Kernel module (下载 Re-Kernel 模块)
+      - name: 🏷️ Create Release and Upload Assets (创建发布并上传)
         env:
-          ASSET_NAME: ${{ steps.download-rekernel.outputs.asset-name }}
-          DOWNLOAD_URL: ${{ steps.download-rekernel.outputs.download-url }}
-          VERSION_NUMBER: ${{ steps.download-rekernel.outputs.version-number }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          ARTIFACT_NAME="Re-Kernel-v${VERSION_NUMBER}"
-          echo "正在下载 Re-Kernel 模块: $ASSET_NAME"
-          echo "下载地址: $DOWNLOAD_URL"
-          echo "Artifact 名称: $ARTIFACT_NAME"
-          aria2c -s16 -x16 -k1M "$DOWNLOAD_URL" -o "$ASSET_NAME"
-          echo "✓ Re-Kernel 模块下载完成"
-          ls -lh "$ASSET_NAME"
-          echo "正在创建目录 $ARTIFACT_NAME 并解压模块..."
-          mkdir -p "$ARTIFACT_NAME"
-          unzip -q "$ASSET_NAME" -d "$ARTIFACT_NAME"
-          echo "✓ 目录结构:"
-          ls -lR "$ARTIFACT_NAME"
 
-      - name: 📤 Upload Re-Kernel module (上传 Re-Kernel 模块)
-        uses: actions/upload-artifact@v5
-        with:
-          name: Re-Kernel-v${{ steps.download-rekernel.outputs.version-number }}
-          path: Re-Kernel-v${{ steps.download-rekernel.outputs.version-number }}
+          # 时间戳
+          TIME="$(TZ='Asia/Shanghai' date +'%y%m%d%H%M%S')"
+          TIME_FORM="$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')"
+
+          # 编译机型
+          DEVICE_NAME="${{ github.event.inputs.device_name }}"
+
+          # KSU 版本号（来自 build job 输出的 ksuver）
+          KSU_VER="${{ needs.build.outputs.ksuver }}"
+
+          # 功能配置描述
+          FEATURES=""
+          if [ "${{ github.event.inputs.enable_Adios }}" = "true" ]; then
+            FEATURES="${FEATURES}- ✅ ADIOS IO调度器"$'\n'
+          fi
+          if [ "${{ github.event.inputs.enable_scx }}" = "true" ]; then
+            FEATURES="${FEATURES}- ✅ 完美风驰 (SCX)"$'\n'
+          fi
+          if [ "${{ github.event.inputs.enable_bbg }}" = "true" ]; then
+            FEATURES="${FEATURES}- ✅ BBG 基带守护"$'\n'
+          fi
+          FEATURES="${FEATURES}- ✅ ReSukiSU (KernelSU)"$'\n'
+          if [ "${{ github.event.inputs.enable_susfs }}" = "true" ]; then
+            FEATURES="${FEATURES}- ✅ SUSFS 挂载支持"$'\n'
+          fi
+
+          # 自定义内核后缀
+          KERNEL_SUFFIX="${{ github.event.inputs.custom_kernel_suffix }}"
+          if [ -z "$KERNEL_SUFFIX" ]; then
+            KERNEL_SUFFIX="默认官方"
+          fi
+
+          # 自定义构建时间
+          KERNEL_TIME="${{ github.event.inputs.custom_kernel_time }}"
+          if [ -z "$KERNEL_TIME" ]; then
+            KERNEL_TIME="默认官方"
+          fi
+
+          # 生成 Release 说明
+          cat << ENDOFF > release_notes.md
+          ### 📱 SM8750 欧加真通用内核 | 构建信息
+
+          - **内核版本**: SM8750 (Android 15 / 6.6)
+          - **编译时间**: ${TIME_FORM}
+          - **编译机型**: ${DEVICE_NAME}
+          - **内核后缀**: ${KERNEL_SUFFIX}
+          - **构建时间**: ${KERNEL_TIME}
+          - **仓库**: ${{ github.repository }}
+          - **运行 ID**: ${{ github.run_id }}
+          - **提交**: ${{ github.sha }}
+
+          ### ⚙️ 功能配置
+
+          ${FEATURES}
+          ### ⏫️ 更新内容
+
+          - 更新 ReSukiSU 至最新版本 (${KSU_VER})
+          - 同步上游内核源码
+
+          ### 📋 安装方法 | Installation Guide
+
+          1. 若你已刷入 ReSukiSU 内核，且 ReSukiSU 管理器已更新至最新版本，可在管理器中直接刷入 AnyKernel 刷机包并重启；
+          2. 由于 KernelSU 上游更新了元模块功能，最新版 KSU 管理器需要配合元模块 (metamodule) 才能正常挂载模块。目前的元模块包括 [meta overlayfs](https://github.com/KernelSU-Modules-Repo/meta-overlayfs), [mountify](https://github.com/backslashxx/mountify), [meta magicmount](https://github.com/7a72/meta-magic_mount/) 等。若你是第一次使用 KSU 或刚从旧版 KSU 管理器升级至新版，请先安装一个元模块；
+          3. 若启用 Re-Kernel，需刷入配套Re-Kernel模块并配合 NoActive 软件使用，以提升后台冻结能力。
+
+          #### 🔗 相关链接
+
+          - ReSukiSU 管理器: [ReSukiSU_CI](https://github.com/cctv18/ReSukiSU_CI/releases)
+          - SukiSU Ultra 管理器: [SukiSU-Ultra](https://github.com/SukiSU-Ultra/SukiSU-Ultra/releases)
+          - KernelSU Next 管理器: [KernelSU-Next](https://github.com/KernelSU-Next/KernelSU-Next/releases)
+          - KernelSU 原版管理器: [KernelSU](https://github.com/tiann/KernelSU/releases)
+          - TG频道@qdykernel: [TG频道@qdykernel](https://t.me/qdykernel)
+
+          #### ※※※ 刷写内核有风险，为防止出现意外导致手机变砖，在刷入内核前请务必用 [KernelFlasher](https://github.com/capntrips/KernelFlasher) 等软件备份 boot 等关键启动分区! ※※※
+          ENDOFF
+
+          echo "=== Release 说明 ==="
+          cat release_notes.md
+          echo ""
+
+          # 收集所有待上传的文件（仅 AK3 zip 和 Re-Kernel zip）
+          RELEASE_FILES=$(find ./release_assets -maxdepth 1 -type f \( -name 'AK3_*.zip' -o -name 'Re-Kernel-v*.zip' \) 2>/dev/null || true)
+
+          if [ -z "$RELEASE_FILES" ]; then
+            echo "::warning::没有找到待上传的发布文件"
+            RELEASE_FILES=""
+          fi
+
+          echo "=== 创建 Release ==="
+          TAG_NAME="SM8750-${DEVICE_NAME}-build-${TIME}"
+
+          gh release create "${TAG_NAME}" \
+            --repo "${{ github.repository }}" \
+            --title "SM8750 ${DEVICE_NAME} Kernel Build - ${TIME_FORM}" \
+            --notes-file release_notes.md \
+            ${RELEASE_FILES}
+
+          echo ""
+          echo "✅ Release 创建完成: ${TAG_NAME}"
