@@ -196,15 +196,15 @@ jobs:
           #sudo apt-get install -y --no-install-recommends curl bison flex make binutils git perl gcc python3 python-is-python3 bc libssl-dev libelf-dev zip unzip ccache
 
           #使用最新版ccache-ECS（特化优化内核编译缓存，大幅提升二次不同配置编译速度）
-          wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/lib/ccache-x86-64 -O ccache &&
+          wget https://github.com/cctv18/oppo_oplus_realme_sm8750/raw/refs/heads/main/lib/ccache-x86-64 -O ccache &&
           sudo cp -f ./ccache /usr/bin/ccache &&
           sudo chmod +x /usr/bin/ccache &&
           rm -f ./ccache &
 
           echo "正在克隆源码仓库..."
-          aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/sm8750_v_16.0.0_oneplus_13_6.6.89.zip -o common.zip && 
-          unzip -q common.zip && 
-          mv "android_kernel_common_oneplus_sm8750-oneplus-sm8750_v_16.0.0_oneplus_13_6.6.89" common &&
+          aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/sm8750_b_16.0.0_oneplus_13_6.6.118.zip -o common.zip && 
+          unzip -q common.zip &&
+          mv "android_kernel_common_oneplus_sm8750-oneplus-sm8750_b_16.0.0_oneplus_13_6.6.118" common &&
           rm -rf common.zip &
 
           echo "正在克隆llvm-clang18工具链..." &&
