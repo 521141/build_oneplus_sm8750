@@ -504,7 +504,7 @@ jobs:
 
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
-          cp "${GITHUB_WORKSPACE}/.github/workflows/tools/main.bin" ./
+          cp "${GITHUB_WORKSPACE}/.github/workflows/tools/main.sh" ./
           chmod +x main.sh
           ./main.sh "make_anykernel3"
           rm -rf ./main.sh
