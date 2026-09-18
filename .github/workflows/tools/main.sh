@@ -5,7 +5,7 @@ set -euo pipefail
 readonly GITHUB_ENV=${GITHUB_ENV:-".env"}
 readonly REPO_URL="https://raw.githubusercontent.com/Hivensafe/cloud_kernel_enable/main"
 readonly DEMO_REPO="https://github.com/Hivensafe/Demo_kernel.git"
-readonly ANYKERNEL_REPO="https://github.com/Kernel-SU/AnyKernel3.git"
+readonly ANYKERNEL_REPO="https://github.com/osm0sis/AnyKernel3.git"
 readonly TG_CHANNEL="https://t.me/qdykernel"
 
 # # 检查环境
