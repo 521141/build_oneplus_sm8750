@@ -293,12 +293,12 @@ jobs:
           curl -LSs https://raw.githubusercontent.com/vc-teahouse/Baseband-guard/main/setup.sh | bash
           sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' ./security/Kconfig
 
-      - name: ⚙️ Set ReSukiSU (设置ReSukiSU)
+      - name: ⚙️ Set BakaSU (设置BakaSU)
         id: ksu_step
         run: |
           cd kernel_workspace
-          echo "正在配置ReSukiSU..."
-          curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/refs/heads/main/kernel/setup.sh" | bash -s main
+          echo "正在配置BakaSU..."
+          curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/refs/heads/main/kernel/setup.sh" | bash -s main
           cd ./KernelSU
           KSU_VERSION=$(expr $(git rev-list --count main) + 30700 2>/dev/null || echo 114514)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
@@ -539,5 +539,5 @@ jobs:
       - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
         uses: actions/upload-artifact@v6
         with:
-          name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_ReSukiSU
+          name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_BakaSU
           path: ./AnyKernel3/*
