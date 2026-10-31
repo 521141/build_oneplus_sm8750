@@ -39,6 +39,16 @@ on:
         default: true
         type: boolean
 
+      droidspaces_enable:
+        description: '是否启用Droidspaces容器支持(轻量化的完整Linux容器支持;false关闭,standard开启容器+ntsync支持,extend开启更多测试支持项)'
+        required: true
+        type: choice
+        default: 'false'
+        options:
+          - 'false'
+          - 'standard'
+          - 'extend'
+
       enable_Adios:
         description: "添加ADIOS IO调度器支持"
         required: true
@@ -127,16 +137,13 @@ jobs:
           if [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
             case "${{ env.DEVICES_NAME }}" in
              oneplus_pad_2_pro)
-                DEFAULT_SUFFIX='-android15-8-g2e6b9c3812c5-ab15114928-4k'
+                DEFAULT_SUFFIX='-android15-8-gc4127a25dcf3-ab15863337-4k'
               ;;
-            oneplus_ace5_ultra)
+            oneplus_ace5_ultra | realme_GT7)
                 DEFAULT_SUFFIX='-android15-8-ge58033dc8ea6-abogki498046332-4k'
               ;;
-            oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | oneplus_pad_2 | realme_GT7 | realme_GT7pro_Speed | realme_GT8)
-                DEFAULT_SUFFIX='-android15-8-g93e223c276e7-abogki500782043-4k'
-              ;;
-            realme_GT7pro)
-                DEFAULT_SUFFIX='-android15-8-gf4dc45704e54-abogki446052083-4k'
+            oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | oneplus_pad_2 | realme_GT7pro | realme_GT7pro_Speed | realme_GT8)
+                DEFAULT_SUFFIX='-android15-8-g9bc34d5b0c79-abogki537459655-4k'
               ;;
           esac
             echo "DEFAULT_SUFFIX=$DEFAULT_SUFFIX" >> $GITHUB_ENV
@@ -153,16 +160,13 @@ jobs:
           if [ -z "${{ github.event.inputs.custom_kernel_time }}" ]; then
             case "${{ env.DEVICES_NAME }}" in
               oneplus_pad_2_pro)
-                  KERNEL_TIME='Mon Mar 30 10:41:25 UTC 2026'
+                  KERNEL_TIME='Wed Jul 15 13:58:53 UTC 2026'
                 ;;
-              oneplus_ace5_ultra)
+              oneplus_ace5_ultra | realme_GT7)
                   KERNEL_TIME='Sun Mar 29 12:31:26 UTC 2026'
                 ;;
-              oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | oneplus_pad_2 |realme_GT7 | realme_GT7pro_Speed | realme_GT8)
-                  KERNEL_TIME='Wed Apr  8 15:08:30 UTC 2026'
-                ;;
-              realme_GT7pro)
-                  KERNEL_TIME='Fri Sep 19 06:13:40 UTC 2025'
+              oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | oneplus_pad_2 | realme_GT7pro | realme_GT7pro_Speed | realme_GT8)
+                  KERNEL_TIME='Wed Jul 22 09:32:35 UTC 2026'
                 ;;
             esac
             echo "KERNEL_TIME=$KERNEL_TIME" >> $GITHUB_ENV
@@ -393,6 +397,62 @@ jobs:
           cd common
           wget https://github.com/cctv18/oppo_oplus_realme_sm8750/raw/refs/heads/main/other_patch/config.patch
           patch -p1 -F 3 < config.patch || true
+
+      - name: 启用 Droidspaces 容器支持
+        run: |
+          if [[ "${{ github.event.inputs.droidspaces_enable }}" != "false" ]]; then
+            echo "正在启用 Droidspaces 容器支持..."
+            cd kernel_workspace/common
+            # 应用 Droidspaces 容器必须补丁
+            wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/droidspaces_patch/fix_sysvipc_kabi_6_7_8.patch
+            patch -p1 -F 3 < fix_sysvipc_kabi_6_7_8.patch || true
+            # 修补 oplus_bsp_midas 行为，避免开机崩溃
+            wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/droidspaces_patch/fix_oplus_bsp_midas.patch
+            patch -p1 -F 3 < fix_oplus_bsp_midas.patch || true
+            # 应用 NTSync 补丁
+            wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/droidspaces_patch/ntsync_base.patch
+            wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/droidspaces_patch/ntsync_compat_${{ env.ANDROID_VERSION }}-${{ env.KERNEL_VERSION }}.patch
+            patch -p1 -F 3 < ntsync_base.patch || true
+            patch -p1 -F 3 < ntsync_compat_${{ env.ANDROID_VERSION }}-${{ env.KERNEL_VERSION }}.patch || true
+            # 开启 Droidspaces 容器所需内核支持
+            echo "CONFIG_PID_NS=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_IPC_NS=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_USER_NS=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_SYSVIPC=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_DEVTMPFS=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_NAMESPACES=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_POSIX_MQUEUE=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_NETFILTER_XT_TARGET_LOG=y" >> ./arch/arm64/configs/gki_defconfig
+            echo "CONFIG_NETFILTER_XT_MATCH_RECENT=y" >> ./arch/arm64/configs/gki_defconfig
+            # 未经测试的配置选项，可能导致bug
+            #echo "CONFIG_CGROUP_DEVICE=y" >> ./arch/arm64/configs/gki_defconfig
+            #echo "CONFIG_CGROUP_PIDS=y" >> ./arch/arm64/configs/gki_defconfig
+            #echo "CONFIG_FW_LOADER_COMPRESS=y" >> ./arch/arm64/configs/gki_defconfig
+            #echo "CONFIG_BRIDGE_NETFILTER=y" >> ./arch/arm64/configs/gki_defconfig
+            #echo "CONFIG_NF_TABLES=y" >> ./arch/arm64/configs/gki_defconfig
+            # 开启 NTSync
+            echo "CONFIG_NTSYNC=y" >> ./arch/arm64/configs/gki_defconfig
+            if [[ "${{ github.event.inputs.droidspaces_enable }}" == "extend" ]]; then
+              echo "正在启用容器环境扩展支持..."
+              # 开启虚拟 HCI 设备支持
+              echo "CONFIG_BT_HCIVHCI=y" >> ./arch/arm64/configs/gki_defconfig
+              # 开启 systemd-coredump 支持
+              echo "CONFIG_STATIC_USERMODEHELPER=n" >> ./arch/arm64/configs/gki_defconfig
+              # 添加 Lindroid EVDI DRM 驱动
+              wget https://github.com/$GITHUB_REPOSITORY/raw/refs/heads/$GITHUB_REF_NAME/droidspaces_patch/evdi_drm.patch
+              patch -p1 -F 3 < evdi_drm.patch || true
+              echo "CONFIG_DRM_LINDROID_EVDI=y" >> ./arch/arm64/configs/gki_defconfig
+            fi
+          fi
+
+      - name: 启用ADIOS IO调度器
+        if: inputs.adios_enable
+        run: |
+          echo "正在启用ADIOS IO调度器(将截止时间优先调度算法与基于自主学习的自适应延迟控制算法相结合, 降低I/O延迟)…"
+          cd kernel_workspace
+          echo "CONFIG_MQ_IOSCHED_ADIOS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MQ_IOSCHED_DEFAULT_ADIOS=y" >> ./common/arch/arm64/configs/gki_defconfig
 
       - name: 🔧 Set Kernel name (设置内核名称)
         run: |
